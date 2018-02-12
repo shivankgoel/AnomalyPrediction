@@ -1,0 +1,36 @@
+Folks, Some key patterns which seem to be cited in these articles and which you should now try to determine from the data:
+
+1. Arrivals at mandis are delayed if rainfall is delayed. Needs to be observed for source mandis at the mandi level, ie. do not average across mandis in different agroclimatic regions. In your event chart, please capture the years and regions reported in the media when rainfall was delayed or inadequate (drought conditions)
+
+2. Arrivals at mandis are less if rainfall is inadequate. Same fine points to keep in mind as above, and capture such reports from the media in your event chart
+
+3. Retail prices at a center rise if arrivals in the mandis in that center's region are delayed, or are less than usual
+
+4. Retail prices at a center rise if exports are high. Your event chart should mention cases where export restrictions were imposed, would have happened that production was low and hence the government restricted exports -- they do this by imposing an MEP (minimum export price) which is much higher than prices prevailing in the country so that traders sell locally. Other cases would also be news reports that onions were imported, like it is happening currently
+
+5. Retail prices would also be high if strikes happened or domestic fuel prices rose. Your event chart should capture these events as well, and then let us see if the data shows us these patterns
+
+So step 1 should be that you make your event chart more exhaustive -- have columns for rainfall, exports, strikes, etc and give details at the regional level to the extent possible. Step 2 should be to do an event based analysis across the major source and terminal mandis, and corresponding retail prices. Build a list of events, eg. (region = maharashtra, cycle = rabi, year = 2010, rainfall time = delayed/on time, rainfall quantity = expected/less, pattern examined = 1/2/3/4/5 as above, pattern validity = expected/unexpected...). 
+
+Now, anomalies would be things like:
+- Rainfall wasn't delayed and the arrivals were in time in the source mandis, but the arrivals were delayed in the terminal mandis. Small farmers are unable to hoard and would sell in time at the source mandis, but the traders taking the stuff from there to the terminal mandis would begin to hoard
+- Rainfall was delayed in some major agroclimatic region where harvesting happens sooner (eg. Karnataka arrivals happen before Maharashtra arrivals), and the retail price rise there gets propagated to other centers. Such price propagation may also see signs of hoarding
+
+If we are able to see such observations visually then we can begin to build mathematical techniques as well, both offline and online methods for anomaly detection. And link with Ritesh's work in a more insightful manner. 
+
+Also try to extend the data until 2017. The recent events in agriculture are more fresh in our minds and we can reflect more deeply on what we see in the data. 
+
+I've not added expected behavior of the mandi prices, we need to understand those better. 
+- These will be very interesting to observe in trend against the CPI, to specifically spot the years where price realizations for farmers was low. The problem is that all action by the government like imposing MEP or catching hoarding is inspired by a rise in retail prices which is important for the consumers, but we also need to find the cases where prices (especially mandi prices) were too low which is important for the farmers to be able to earn a decent income. 
+- Additionally, the comparison between the source mandi price movement, terminal mandi price movement, and retail price movement, will be important to understand under different scenarios of delayed/inadequate/timely/adequate arrivals. And with more details such as the example of price propagation from Karnataka to Maharashtra, because of rainfall problems in Karnataka. 
+
+Aaditeshwar
+
+
+How far the data can be used?
+what are the temporal and spatial limits or granularity 
+Try to quantify the rules using simple terms
+ex : (Retail - Mandi)/Mandi
+
+
+

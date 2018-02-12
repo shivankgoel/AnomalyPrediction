@@ -1,0 +1,23 @@
+'Taking all the 113 events'
+['Transport', 'Weather', 'Inflation', 'Fuel', 'Hoarding']
+correct =  [0, 27, 2, 0, 25] overall =  54
+total =  [11, 39, 15, 9, 39] overall =  113
+accuracy =  [0.0, 0.692, 0.133, 0.0, 0.641] overall =  0.477
+
+'Delhi'
+['Transport', 'Weather', 'Inflation', 'Fuel', 'Hoarding']
+correct =  [0, 10, 0, 0, 7] overall =  17
+total =  [5, 15, 5, 4, 14] total =  43
+accuracy =  [0.0, 0.666, 0.0, 0.0, 0.500] overall =  0.395
+
+'Mumbai'
+['Transport', 'Weather', 'Inflation', 'Fuel', 'Hoarding']
+correct =  [0, 8, 1, 0, 4] overall =  13
+total =  [3, 15, 7, 1, 14] total =  40
+accuracy =  [0.0, 0.533, 0.142, 0.0, 0.285] overall =  0.325
+
+'Lucknow'
+['Transport', 'Weather', 'Inflation', 'Fuel', 'Hoarding']
+correct =  [0, 3, 0, 1, 6] overall =  10
+total =  [3, 9, 3, 4, 11] total =  30
+accuracy =  [0.0, 0.333, 0.0, 0.25, 0.545] overall =  0.333

@@ -1,0 +1,271 @@
+Largest States
+
+1	Maharashtra	5362.0	
+2	Karnataka	2985.8	
+3	Madhya Pradesh	2967.4	
+4	Bihar	1247.3	
+5	Gujarat	1126.5	
+6	Rajasthan	800.1	
+7	Haryana	667.1	
+8	AndhraPradesh 575.6	
+9	Telengana. 419.1
+10	Uttar Pradesh 413.4
+
+Centre Codes :- 44,46 mumbai,nagpur
+				7,18,43,45 bengaluru, dhanwad, mangalore,mysore
+				9,24,28,30,57,59 bhopal,gwalior,indore,jabalpur,rewa,sagar
+				8,50,53 bhagalpur,patna,purnia
+				3,55,74,75 ahemdabad,rajkot,bhuj,surat 
+				16, delhi
+
+_________________________________
+
+#Largest mandis
+
+from datetime import datetime
+import pandas as pd
+import numpy as np
+import scipy
+from constants import CONSTANTS
+
+mandi_info = pd.read_csv(CONSTANTS['ORIGINALMANDIINFO'])
+dictCM = mandi_info.groupby('centreid')['mandicode'].apply(list).to_dict()
+centres = list(dictCM.keys())
+
+retailP = pd.read_csv(CONSTANTS['ORIGINALRETAIL'], header=None)
+
+RP = 2
+START = CONSTANTS['STARTDATE']
+END = CONSTANTS['ENDDATE']
+CENTREID = 1
+
+retailP = retailP[retailP[RP] != 0]
+retailP = retailP[np.isfinite(retailP[RP])]
+retailP = retailP[retailP[0] >= START]
+retailP = retailP[retailP[0] <= END]
+retailP = retailP.drop_duplicates(subset=[0, 1], keep='last')
+
+def CreateCentreSeries(Centre, RetailPandas):
+  '''
+  Create Centre and Mandis
+  '''
+  rc = RetailPandas[RetailPandas[CENTREID] == Centre]
+  rc = rc.sort_values([0], ascending=[True])
+  rc[3] = rc.apply(lambda row: datetime.strptime(row[0], '%Y-%m-%d'), axis=1)
+  rc.drop(rc.columns[[0, 1]], axis=1, inplace=True)
+  rc.set_index(3, inplace=True)
+  rc.index.names = [None]
+  idx = pd.date_range(START, END)
+  rc = rc.reindex(idx, fill_value=0)
+  return rc * 100
+
+
+relcentres = [44,46,7,18,43,45,9,24,28,30,57,59,8,50,53,3,55,74,75,16]
+
+centreSeries = []
+for i in range(0, len(relcentres)):
+  centreSeries.append(CreateCentreSeries(relcentres[i], retailP))
+ 
+
+WP = 7
+WA = 2
+wholeSalePA = pd.read_csv(CONSTANTS['ORIGINALMANDI'], header=None)
+wholeSalePA = wholeSalePA[wholeSalePA[WA] != 0]
+wholeSalePA = wholeSalePA[wholeSalePA[WP] != 0]
+wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WA])]
+wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WP])]
+wholeSalePA = wholeSalePA[wholeSalePA[0] >= START]
+wholeSalePA = wholeSalePA[wholeSalePA[0] <= END]
+retailP = retailP[retailP[0] >= START]
+retailP = retailP[retailP[0] <= END]
+wholeSalePA = wholeSalePA.drop_duplicates(subset=[0, 1], keep='last')
+
+
+
+
+def CreateMandiSeries(Mandi, MandiPandas):
+  mc = MandiPandas[MandiPandas[1] == Mandi]
+  mc = mc.sort_values([0], ascending=[True])
+  mc[8] = mc.apply(lambda row: datetime.strptime(row[0], '%Y-%m-%d'), axis=1)
+  mc.drop(mc.columns[[0, 1, 3, 4, 5, 6]], axis=1, inplace=True)
+  mc.set_index(8, inplace=True)
+  mc.index.names = [None]
+  idx = pd.date_range(START, END)
+  mc = mc.reindex(idx, fill_value=0)
+  return mc
+
+
+
+def plot_time_series(ts_dataframe, start_date,end_date,col_num,figname,path):
+  temp1 = ts_dataframe[7]
+  temp2 = temp1.loc[start_date:end_date]
+  yaxis = list(temp2)
+  xaxis = list(temp2.index)
+  plt.plot(xaxis,yaxis)
+  plt.xlabel('Time')
+  plt.ylabel('Price Per Quintal')
+  plt.title(figname)
+  plt.savefig(path+figname)
+  plt.close()
+
+
+PATH = 'plots/mandis/'
+start_date = CONSTANTS['STARTDATE']
+end_date = CONSTANTS['ENDDATE']
+
+relcentres = [44,46,7,18,43,45,9,24,28,30,57,59,8,50,53,3,55,74,75,16]
+
+mandis = []
+mandiSeries = []
+idx = 0
+for c in relcentres:
+	temp_mandis = dictCM[c]
+	mandis.append([])
+	mandiSeries.append([])
+	for m in temp_mandis:
+		if(np.sum(wholeSalePA[1]==m) !=0):
+			temp_series = CreateMandiSeries(m,wholeSalePA)			
+			mandiSeries[idx].append(temp_series)
+			x = temp_series
+			if(np.sum(x!=0) !=0):
+				x[WP] = x[WP].replace(0.0, np.NaN, regex=True)
+				x[WP] = x[WP].interpolate(method='pchip')
+				type(x)
+				print(x)
+				plot_time_series(x,start_date,end_date,i,str(c)+' : '+str(m),PATH)
+	idx+=1
+
+
+finalcentres = []
+finalmandis = []
+for i in range(0,len(mandis)):
+	if (mandis[i] != []):
+		finalmandis.append(mandis[i])
+		finalcentres.append(relcentres[i])
+
+
+___________________________________________________________
+
+Maharashtra     MUMBAI       Pune         							1167.35    486.13
+Gujarat         SURAT        Pimpalgaon         					1721.51    371.93
+Maharashtra     MUMBAI       Lasalgaon         						1339.48    335.79
+Maharashtra     MUMBAI       Rahuri         						1061.32    291.66
+Karnataka       DHARWAD      Solapur         						1206.14    666.21
+Maharashtra     MUMBAI       Ahmednagar         					1730.78    325.07
+Maharashtra     MUMBAI       Newasa(Ghodegaon)         				1307.29    264.18
+Karnataka       BENGALURU    Bangalore         						2763.14    1412.46
+Gujarat         RAJKOT       Gondal         						1036.47    393.61
+__________________________________________________________
+
+Medium Mandis in Top 10
+
+Gujarat       	SURAT        Pimpalgaon Baswant(Saykheda)         	351.45    119.03
+Uttar Pradesh   AGRA         Agra         							236.19    52.85
+Rajasthan       JODHPUR      Nagour(FV)         					116.98    22.06
+Gujarat       	AHMEDABAD    Vadodara(Sayajipura)         			155.0     85.74
+Maharashtra     MUMBAI       Rahata         						725.62    208.75
+Karnataka       DHARWAD      Bijapur         						108.98    35.79
+Gujarat       	SURAT        Satana         						577.46    93.89
+Maharashtra     MUMBAI       Junnar        			 				260.4     85.95
+Maharashtra     MUMBAI       Sinner         						395.47    153.05
+Uttar Pradesh   VARANASI     Gorakhpur         						135.46    23.24
+Maharashtra     MUMBAI       Maanachar         						139.54    21.38
+Gujarat       	SURAT        Dindori(Vani)         					376.67    90.21
+Karnataka       DHARWAD      Belgaum         						360.58    155.04
+Rajasthan       JAIPUR       Jaipur(F&V)         					198.02    51.52
+Maharashtra     MUMBAI       Kada         							183.11    76.19
+Gujarat       	AHMEDABAD    Ahmedabad(ChimanbhaiPatalMarketVasana) 516.93    65.41
+Telangana       KARIMNAGAR   Bowenpally         					288.72    91.47
+Uttar Pradesh   KANPUR       Kanpur(Grain)         					120.23    25.03
+Maharashtra     MUMBAI       Lasalgaon(Niphad)         				306.03    61.85
+Haryana       	GURGAON      Gurgaon         						102.08    33.02
+Maharashtra     MUMBAI       Lonand         						178.47    160.82
+Madhya Pradesh  BHOPAL       Shujalpur         						889.42    849.81
+Maharashtra     MUMBAI       Palthan         						146.91    46.29
+Andhra Pradesh  HYDERABAD    Kurnool         						285.18    217.31
+Telangana       KARIMNAGAR   Hyderabad (F&V)         				762.17    95.94
+Haryana       	GURGAON      Alwar(FV)         						542.86    928.36
+Maharashtra     MUMBAI       Kopargaon         						298.02    155.65
+Maharashtra     MUMBAI       Kalvan         						458.26    82.88
+Gujarat         SURAT        Manmad         						744.06    302.06
+Maharashtra     MUMBAI       Rahuri(Vambori)         				170.72    55.81
+Karnataka       MYSORE       Mysore (Bandipalya)         			168.94    63.41
+Rajasthan       JODHPUR      Jodhpur(F&V)(Bhadwasia)         		146.56    25.24
+Gujarat         RAJKOT       Jamnagar         						362.21    130.99
+Maharashtra     MUMBAI       Akole         							235.11    132.96
+Maharashtra     NAGPUR       Nagpur         						183.13    43.15
+Madhya Pradesh  REWA         Allahabad         						113.8     48.9
+Gujarat         RAJKOT       Rajkot         						119.89    26.21
+Telangana       KARIMNAGAR   Devala         						375.19    79.43
+Uttar Pradesh   LUCKNOW      Devariya         						110.74    24.4
+Karnataka       DHARWAD      Hubli (Amaragol)         				455.77    392.15
+Maharashtra     MUMBAI       Parner         						515.52    387.11
+Maharashtra     MUMBAI       Sangamner         						566.48    217.53
+Gujarat       	SURAT        Malegaon         						424.83    91.98
+Gujarat       	SURAT        Chandvad         						541.9     220.76
+Gujarat       	SURAT        Bhavnagar         						608.79    895.23
+Gujarat       	AHMEDABAD    Mehsana(Mehsana Veg)         			186.4     46.27
+Gujarat       	SURAT        Dhule         							229.58    106.75
+Maharashtra     MUMBAI       Mumbai         						953.47    65.36
+Maharashtra     MUMBAI       Shrirampur         					597.98    382.22
+Madhya Pradesh  INDORE       Indore(F&V)         					615.56    170.31
+Karnataka       MYSORE       Hassan         						350.8     168.14
+Gujarat       	SURAT        Surat         							207.35    26.66
+Telangana       KARIMNAGAR   Sadasivpet         					119.58    109.63
+Maharashtra     MUMBAI       Yeola         							920.99    439.93
+
+________________________________________________________________
+
+
+Orissa       	SAMBALPUR    Bargarh                          		207.77    123.99
+West Bengal  	KOLKATA 	 Bara Bazar (Posta Bazar)         		205.39    24.36
+Delhi        	DELHI        Shahdara                         		379.39    84.99
+Orissa       	CUTTACK      Kamakhyanagar                    		187.73    26.07
+Punjab       	AMRITSAR     Amritsar(Amritsar Mewa Mandi)    		165.67    90.77
+J n K        	JAMMU        Narwal Jammu (F&V)               		109.09    16.49
+Uttrakhand   	DEHRADUN     Dehradoon                        		300.61    105.1
+Delhi        	DELHI        Keshopur                         		125.39    26.42
+Delhi        	DELHI        Azadpur         				 		907.56    110.54
+Punjab       	LUDHIANA     Firozepur City         			 	134.38    75.25
+Punjab       	LUDHIANA     Hoshiarpur         				 	107.78    15.94
+Kerala       	THRISSUR     Madhavapuram         			 		136.19    12.99
+West Bengal  	KOLKATA      Katwa         					 		132.42    28.54
+Orissa       	BHUBANESHWAR Jatni         					 		209.3     27.27
+
+__________________________________________________________________________________
+
+Compiled
+
+
+Maharashtra     MUMBAI       Ahmednagar         					1730.78    325.07
+Maharashtra     MUMBAI       Lasalgaon         						1339.48    335.79
+Maharashtra     MUMBAI       Newasa(Ghodegaon)         				1307.29    264.18
+Maharashtra     MUMBAI       Pune         							1167.35    486.13
+Maharashtra     MUMBAI       Rahuri         						1061.32    291.66
+Maharashtra     MUMBAI       Mumbai         						953.47     65.36
+Maharashtra     MUMBAI       Yeola         							920.99     439.93
+Maharashtra     MUMBAI       Rahata         						725.62     208.75
+Maharashtra     MUMBAI       Shrirampur         					597.98     382.22
+Maharashtra     MUMBAI       Sangamner         						566.48     217.53
+Maharashtra     MUMBAI       Parner         						515.52     387.11
+
+
+Gujarat         SURAT        Pimpalgaon         					1721.51    371.93
+Gujarat         RAJKOT       Gondal         						1036.47    393.61
+Gujarat         SURAT        Manmad         						744.06     302.06
+Gujarat       	SURAT        Bhavnagar         						608.79     895.23
+Gujarat       	SURAT        Satana         						577.46     93.89
+Gujarat       	AHMEDABAD    Ahmedabad(ChimanbhaiPatalMarketVasana) 516.93     65.41
+Gujarat       	SURAT        Chandvad         						541.9      220.76
+
+Karnataka       BENGALURU    Bangalore         						2763.14    1412.46
+Karnataka       DHARWAD      Solapur         						1206.14    666.21
+
+Madhya Pradesh  BHOPAL       Shujalpur         						889.42     849.81
+Madhya Pradesh  INDORE       Indore(F&V)         					615.56     170.31
+
+Telangana       KARIMNAGAR   Hyderabad (F&V)         				762.17     95.94
+
+Haryana       	GURGAON      Alwar(FV)         						542.86    928.36
+
+Delhi        	DELHI        Azadpur         				 		907.56    110.54
