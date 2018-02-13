@@ -111,7 +111,7 @@ def findnormal(anomalies,series):
   from datetime import timedelta
   date = datetime.strptime(date,'%Y-%m-%d')
   enddate = datetime.strptime(enddate,'%Y-%m-%d')
-  window = 43
+  window = 42
   duration = timedelta(days=window)
   while(duration <= enddate-date):
     s = datetime.strftime(date,'%Y-%m-%d')
