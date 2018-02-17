@@ -168,10 +168,32 @@ def prepare(anomalies,labels,priceserieslist):
 		x.append(np.array(p))
 	return np.array(x),np.array(labels)		
 
-x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi,mandipriceseriesdelhi])
-x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai,mandipriceseriesmumbai])
+
+# x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi])
+# x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai])
+# # print x2[0]
+# x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow])
+
+# x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[mandipriceseriesdelhi])
+# x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[mandipriceseriesmumbai])
+# # print x2[0]
+# x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[mandipriceserieslucknow])
+
+x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi/mandipriceseriesdelhi])
+x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai/mandipriceseriesmumbai])
 # print x2[0]
-x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow,mandipriceserieslucknow])
+x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow/mandipriceserieslucknow])
+
+# x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi])
+# x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai])
+# # print x2[0]
+# x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
+
+# x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi,mandiarrivalseriesdelhi])
+# x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai,mandiarrivalseriesmumbai])
+# # print x2[0]
+# x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow,mandiarrivalserieslucknow])
+
 
 def getKey(item):
 	return item[0]
@@ -246,6 +268,14 @@ print sum(predicted == actual_labels)/134.0
 print actual_labels
 print predicted
 print f1_score(actual_labels,predicted,labels=[1,2,3,4,5,6],average="macro")
+
+
+from sklearn.metrics import confusion_matrix
+cfmatrix1 = confusion_matrix(actual_labels,predicted)
+print ['Transport','Weather','Inflation','Fuel','Hoarding','Normal']
+print cfmatrix1
+
+
 '''
 LEAVE ONE OUT
 '''
