@@ -89,8 +89,16 @@ def monsoon():
     a = rainfallmonthly[str(year)+'-07-01':str(year)+'-09-30']
     b = avgrainfall[str(year)+'-07-01':str(year)+'-09-30']
     corr = np.corrcoef(a,b)[0,1]
-    if corr<0.9:
-      print year
+    # if corr<0.9:
+    print corr,year
+
+def newmonsoon():
+  for year in range(2006,2015):
+    a = [rainfallmonthly[str(year)+'-0'+str(month)+'-01'] for month in range(7,10)]
+    b = [avgrainfall[str(year)+'-0'+str(month)+'-01'] for month in range(7,10)]
+    corr = np.corrcoef(a,b)[0,1]
+    # if corr<0.9:
+    print corr,year
 '''
 To measure unseasonal rainfall during 
 '''
@@ -107,6 +115,19 @@ def unseasonal():
     d = diff[year-2006]
     if d>0.5:
       print year
+
+def newunseasonal():
+  diff = []
+  for year in range(2006,2015):
+      a = [rainfallmonthly[str(year)+'-'+str(month)+'-01'] for month in range(10,12)]
+      b = [avgrainfall[str(year)+'-'+str(month)+'-01'] for month in range(10,12)]
+      diff.append((np.array(a)-np.array(b)).mean())
+
+  diff = diff / max(diff)
+
+  for year in range(2006,2015):
+    d = diff[year-2006]
+    print year,d
 '''
 To measure excess monsoon 
 '''
@@ -120,8 +141,22 @@ def excessmonsoon():
   diff = diff / max(diff)
 
   for year in range(2006,2015):
+    d = diff[year-2006]
     if d>0.3:
       print year
+
+def newexcessmonsoon():
+  diff = []
+  for year in range(2006,2015):
+    a = [rainfallmonthly[str(year)+'-0'+str(month)+'-01'] for month in range(7,10)]
+    b = [avgrainfall[str(year)+'-0'+str(month)+'-01'] for month in range(7,10)]
+    diff.append((np.array(a)-np.array(b)).mean())
+
+  diff = diff / max(diff)
+
+  for year in range(2006,2015):
+    d = diff[year-2006]
+    print year,d
 
 def arrival(hoarding):
   sdate = []
