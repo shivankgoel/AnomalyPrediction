@@ -241,6 +241,27 @@ xall = scaler.transform(xall)
 kmeans = KMeans(n_clusters=6, random_state=0).fit(xall)
 answer_labels = kmeans.labels_
 print len(answer_labels)
+predicted_classes = []
+for lbl in range(0,6):
+  max_lbl = [0,0,0,0,0,0]
+  for i in range(0,len(answer_labels)):
+    if(lbl == answer_labels[i]):
+      max_lbl[yall[i]-1] = max_lbl[yall[i]-1] + 1
+
+  predicted_classes.append(np.array(max_lbl).argmax()+1)
+
+predicted_labels = []
+for i in range(0,len(answer_labels)):
+  predicted_labels.append(predicted_classes[answer_labels[i]])
+
+print predicted_classes
+print yall
+print sum(predicted_labels == yall)/134.0
+
+
+from sklearn.metrics import confusion_matrix
+cfmatrix1 = confusion_matrix(yall,predicted_labels)
+print cfmatrix1
 # for i in range(0,9):
 #   print answer_labels[i],answer_labels[i+9],answer_labels[i+18]
 # yearall = np.array(delhi_anomalies_year+mumbai_anomalies_year+lucknow_anomalies_year)

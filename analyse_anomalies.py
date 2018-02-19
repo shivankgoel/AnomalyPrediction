@@ -81,16 +81,9 @@ def get_anomalies(path):
   anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %d/%m/%Y'),'%Y-%m-%d') for date in anomalies[1]]
   return anomalies
 
-def get_anomalies_new(path):
-  anomalies = pd.read_csv(path, header=None, index_col=None)
-  anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%Y-%m-%d'),'%Y-%m-%d') for date in anomalies[0]]
-  anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %Y-%m-%d'),'%Y-%m-%d') for date in anomalies[1]]
-  return anomalies
-
-
-anomaliesmumbai = get_anomalies_new('data/anomaly/newnormalmumbai.csv')
-anomaliesdelhi = get_anomalies_new('data/anomaly/newnormaldelhi.csv')
-anomalieslucknow = get_anomalies_new('data/anomaly/newnormallucknow.csv')
+anomaliesmumbai = get_anomalies('data/anomaly/mumbai.csv')
+anomaliesdelhi = get_anomalies('data/anomaly/delhi.csv')
+anomalieslucknow = get_anomalies('data/anomaly/lucknow.csv')
 
 # Labelling 
 # Transport:  1
@@ -103,6 +96,75 @@ anomalieslucknow = get_anomalies_new('data/anomaly/newnormallucknow.csv')
 delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5]
 lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2]
 mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5]
+
+def display_anomalies(anomalieslist, anomaly, labels):
+  count = {'01':0,'02':0,'03':0,'04':0,'05':0,'06':0,'07':0,'08':0,'09':0,'10':0,'11':0,'12':0}
+  for i in range(0,len(anomalieslist)):
+    if( labels[i] == anomaly):
+      count[anomalieslist[0][i][5:7]] = count[anomalieslist[0][i][5:7]] + 1
+  return count
+
+
+def overlapping(anomalies,s,e,labels):
+  startdate = datetime.strptime(s,'%Y-%m-%d')
+  if(startdate.month >=2 and startdate.month <= 7):
+    return True
+  for i in range(0,len(anomalies)):
+    if(labels[i] == 2 or labels[i] == 3 or labels[i] == 5):  
+      if((anomalies[0][i]<=s and s<=anomalies[1][i]) or  (anomalies[0][i]<=e and e<=anomalies[1][i])):
+        return True
+  return False
+
+def findnormal_restricted(anomalies,series,labels):
+  sdate = []
+  edate = []
+  date = CONSTANTS['STARTDATE']
+  enddate = CONSTANTS['ENDDATEOLD']
+  from datetime import timedelta
+  date = datetime.strptime(date,'%Y-%m-%d')+timedelta(days=21)
+  enddate = datetime.strptime(enddate,'%Y-%m-%d')
+  window = 42
+  duration = timedelta(days=window)
+  while(duration <= enddate-date):
+    s = datetime.strftime(date,'%Y-%m-%d')
+    e = datetime.strftime(date+timedelta(days=window),'%Y-%m-%d') 
+    x1 = (series.rolling(window=14,center=True).mean())[s:e]
+    date = date+timedelta(days=10)
+    if not overlapping(anomalies,s,e,labels):
+      a = x1.min()
+      b = x1.max()
+      if(b-a <=400 and b-a>=200):
+        sdate.append(s)
+        edate.append(e)
+        print b-a
+        date = date+timedelta(days=30)
+  return sdate,edate
+
+
+def createnormalfile(path,anomaliesmumbai,retailpriceseriesmumbai,labels):
+  a,b = findnormal_restricted(anomaliesmumbai,retailpriceseriesmumbai,labels)
+  newdf = anomaliesmumbai
+  newdf[1] = ' '+newdf[1]
+  for i in range(len(a)):
+    newdf.loc[i+len(anomaliesmumbai)] = [a[i],' '+b[i],' NormalR']
+  result = newdf.sort_values([0])
+  result.to_csv(path, header=None,index=None)
+
+createnormalfile('data/anomaly/newnormalmumbai.csv',anomaliesmumbai,retailpriceseriesmumbai,mumbailabels)
+createnormalfile('data/anomaly/newnormaldelhi.csv',anomaliesdelhi,retailpriceseriesdelhi,delhilabels)
+createnormalfile('data/anomaly/newnormallucknow.csv',anomalieslucknow,retailpriceserieslucknow,lucknowlabels)
+
+
+def get_anomalies_new(path):
+  anomalies = pd.read_csv(path, header=None, index_col=None)
+  anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%Y-%m-%d'),'%Y-%m-%d') for date in anomalies[0]]
+  anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %Y-%m-%d'),'%Y-%m-%d') for date in anomalies[1]]
+  return anomalies
+
+anomaliesmumbai = get_anomalies_new('data/anomaly/newnormalmumbai.csv')
+anomaliesdelhi = get_anomalies_new('data/anomaly/newnormaldelhi.csv')
+anomalieslucknow = get_anomalies_new('data/anomaly/newnormallucknow.csv')
+
 
 def newlabels(anomalies,oldlabels):
   print len(anomalies[anomalies[2] != ' NormalR']), len(oldlabels)
@@ -121,97 +183,13 @@ def newlabels(anomalies,oldlabels):
 delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
-
-def overlapping(anomalies,s,e,labels):
-  for i in range(0,len(anomalies)):
-    if(labels[i] == 2 or labels[i] == 3 or labels[i] == 5 or labels[i] == 6):  
-      if((anomalies[0][i]<=s and s<=anomalies[1][i]) or  (anomalies[0][i]<=e and e<=anomalies[1][i])):
-        return True
-  return False
-
-def findnormal(anomalies,series,labels):
-  sdate = []
-  edate = []
-  date = CONSTANTS['STARTDATE']
-  enddate = CONSTANTS['ENDDATEOLD']
-  from datetime import timedelta
-  date = datetime.strptime(date,'%Y-%m-%d')+timedelta(days=21)
-  enddate = datetime.strptime(enddate,'%Y-%m-%d')
-  window = 42
-  duration = timedelta(days=window)
-  while(duration <= enddate-date):
-    s = datetime.strftime(date,'%Y-%m-%d')
-    e = datetime.strftime(date+timedelta(days=window),'%Y-%m-%d') 
-    x1 = (series.rolling(window=14,center=True).mean())[s:e]
-    date = date+timedelta(days=10)
-    if not overlapping(anomalies,s,e,labels):
-      a = x1.min()
-      b = x1.max()
-      if(b-a <=250 and b-a>=50):
-        sdate.append(s)
-        edate.append(e)
-        print b-a
-        date = date+timedelta(days=30)
-  return sdate,edate
-
-
-def createnormalfile(path,anomaliesmumbai,retailpriceseriesmumbai,labels):
-  a,b = findnormal(anomaliesmumbai,retailpriceseriesmumbai,labels)
-  newdf = anomaliesmumbai
-  newdf[1] = ' '+newdf[1]
-  for i in range(len(a)):
-    newdf.loc[i+len(anomaliesmumbai)] = [a[i],' '+b[i],' Normal']
-  result = newdf.sort_values([0])
-  result.to_csv(path, header=None,index=None)
-
-createnormalfile('data/anomaly/normalmumbai.csv',anomaliesmumbai,retailpriceseriesmumbai,mumbailabelsnew)
-createnormalfile('data/anomaly/normaldelhi.csv',anomaliesdelhi,retailpriceseriesdelhi,delhilabelsnew)
-createnormalfile('data/anomaly/normallucknow.csv',anomalieslucknow,retailpriceserieslucknow,lucknowlabelsnew)
-
-
-
-# def get_anomalies_new(path):
-#   anomalies = pd.read_csv(path, header=None, index_col=None)
-#   anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%Y-%m-%d'),'%Y-%m-%d') for date in anomalies[0]]
-#   anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %Y-%m-%d'),'%Y-%m-%d') for date in anomalies[1]]
-#   return anomalies
-
-anomaliesmumbai = get_anomalies_new('data/anomaly/normalmumbai.csv')
-anomaliesdelhi = get_anomalies_new('data/anomaly/normaldelhi.csv')
-anomalieslucknow = get_anomalies_new('data/anomaly/normallucknow.csv')
-
-
-def newlabels2(anomalies,oldlabels):
-  print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
-  labels = []
-  k=0
-  for i in range(0,len(anomalies)):
-    if(anomalies[2][i] != ' Normal'):
-      labels.append(oldlabels[k])
-      #print k,oldlabels[k]
-      k = k+1
-    else:
-      labels.append(7)
-  return labels
-
-
-delhilabelsnew = newlabels2(anomaliesdelhi,delhilabelsnew)
-lucknowlabelsnew = newlabels2(anomalieslucknow,lucknowlabelsnew)
-mumbailabelsnew = newlabels2(anomaliesmumbai,mumbailabelsnew)
 print len(delhilabelsnew)
 print len(lucknowlabelsnew)
 print len(mumbailabelsnew)
-
-def display_anomalies(anomalieslist, anomaly, labels):
-  count = {'01':0,'02':0,'03':0,'04':0,'05':0,'06':0,'07':0,'08':0,'09':0,'10':0,'11':0,'12':0}
-  for i in range(0,len(anomalieslist)):
-    if( labels[i] == anomaly):
-      count[anomalieslist[0][i][5:7]] = count[anomalieslist[0][i][5:7]] + 1
-  return count
-
-count1 = display_anomalies(anomaliesmumbai,7,mumbailabelsnew)
-count2 = display_anomalies(anomaliesdelhi,7,delhilabelsnew)
-count3 = display_anomalies(anomalieslucknow,7,lucknowlabelsnew)
+# print len(delhilabelsnew == 2)
+count1 = display_anomalies(anomaliesmumbai,6,mumbailabelsnew)
+count2 = display_anomalies(anomaliesdelhi,6,delhilabelsnew)
+count3 = display_anomalies(anomalieslucknow,6,lucknowlabelsnew)
 c = 0
 for keys in count1:
   # print keys, count1[keys]+count2[keys]+count3[keys]

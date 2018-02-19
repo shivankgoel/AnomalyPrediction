@@ -14,7 +14,9 @@ from sklearn.metrics import confusion_matrix
 import os
 cwd = os.getcwd()
 
-
+'''
+This file checks the accuracies for only four classes of periods - Hoarding, Weather, Inflation and Normal
+'''
 
 
 
@@ -132,26 +134,28 @@ def get_anomalies_year(anomalies):
 		mid_date_labels.append(datetime.strftime(datetime.strptime(anomalies[0][i],'%Y-%m-%d')+timedelta(days=21),'%Y-%m-%d'))
 	return mid_date_labels
 
-anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',retailpriceseriesmumbai)
-anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',retailpriceseriesdelhi)
-anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',retailpriceserieslucknow)
+anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',mandipriceseriesmumbai)
+anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',mandipriceseriesdelhi)
+anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',mandipriceserieslucknow)
 
 delhi_anomalies_year = get_anomalies_year(anomaliesdelhi)
 mumbai_anomalies_year = get_anomalies_year(anomaliesmumbai)
 lucknow_anomalies_year = get_anomalies_year(anomalieslucknow)
 
 def newlabels(anomalies,oldlabels):
-  print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
-  labels = []
-  k=0
-  for i in range(0,len(anomalies)):
-    if(anomalies[2][i] != ' Normal'):
-      labels.append(oldlabels[k])
+  # print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
+	labels = []
+	k=0
+	for i in range(0,len(anomalies)):
+		if(anomalies[2][i] == ' Normal'):
+			labels.append(7)
+		elif(anomalies[2][i] == ' NormalR'):
+			labels.append(6)
+		else:
+			labels.append(oldlabels[k])
       #print k,oldlabels[k]
-      k = k+1
-    else:
-      labels.append(6)
-  return labels
+			k = k+1
+	return labels
 
 
 delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
@@ -162,17 +166,18 @@ mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
 def prepare(anomalies,labels,priceserieslist):
 	x = []
 	for i in range(0,len(anomalies)):
-
 		p=[]
 		for j in range(0,len(priceserieslist)):
 			p += (Normalise(np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
+			if(i==0):
+				print anomalies[0][i], anomalies[1][i]
 		x.append(np.array(p))
 	return np.array(x),np.array(labels)		
 
-x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi,mandipriceseriesdelhi])
-x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai,mandipriceseriesmumbai])
+x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi])
+x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai])
 # print x2[0]
-x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow,mandipriceserieslucknow])
+x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
 
 def getKey(item):
 	return item[0]
@@ -209,8 +214,8 @@ def get_score(xtrain,xtest,ytrain,ytest):
 	scaler = preprocessing.StandardScaler().fit(xtrain)
 	xtrain = scaler.transform(xtrain)
 	xtest = scaler.transform(xtest)
-	# model = RandomForestClassifier(max_depth=2, random_state=0)
-	model = SVC(kernel='rbf', C=0.8)
+	model = RandomForestClassifier(max_depth=2, random_state=0)
+	# model = SVC(kernel='rbf', C=0.8)
 	model.fit(xtrain,ytrain)
 	test_pred = np.array(model.predict(xtest))
 	# ytest = np.array(ytest)
@@ -226,10 +231,24 @@ xall = np.array(x1.tolist()+x2.tolist()+x3.tolist())
 yall = np.array(y1.tolist()+y2.tolist()+y3.tolist())
 xall_new =[]
 yall_new = []
-
+yearall_new = []
 yearall = np.array(delhi_anomalies_year+mumbai_anomalies_year+lucknow_anomalies_year)
-assert(len(xall) == len(yearall))
-total_data, total_labels = partition(xall_new,yall_new,yearall,6)
+for x in range(0,len(xall)):
+	print len(xall[x]),yall[x]
+for y in range(0,len(yall)):
+	if( yall[y] == 2 or yall[y]==3 or yall[y]==5):
+		xall_new.append(xall[y])
+		yall_new.append(1)
+		yearall_new.append(yearall[y])
+	elif (yall[y] ==6 or yall[y] == 7):
+		xall_new.append(xall[y])
+		yall_new.append(0)
+		yearall_new.append(yearall[y])
+
+# xall_new = np.array(xall_new)
+# yall_new = np.array(yall_new)
+assert(len(xall_new) == len(yearall_new))
+total_data, total_labels = partition(xall_new,yall_new,yearall_new,6)
 predicted = []
 actual_labels = []
 for i in range(0,len(total_data)):
@@ -247,10 +266,12 @@ for i in range(0,len(total_data)):
 predicted = np.array(predicted)
 actual_labels= np.array(actual_labels)
 print len(actual_labels)
-print sum(predicted == actual_labels)
+print sum(predicted == actual_labels)/172.0
 print actual_labels
 print predicted
-print f1_score(actual_labels,predicted,labels=[1,2,3,4,5,6],average="macro")
+print f1_score(actual_labels,predicted,labels=[0,1],average="macro")
+from sklearn.metrics import confusion_matrix
+print confusion_matrix(actual_labels,predicted)
 '''
 LEAVE ONE OUT
 '''

@@ -1,4 +1,3 @@
-from sklearn.metrics import f1_score
 from datetime import timedelta
 from datetime import datetime
 import pandas as pd
@@ -9,7 +8,6 @@ import matplotlib
 from sklearn import preprocessing
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix
 
 import os
 cwd = os.getcwd()
@@ -84,16 +82,22 @@ mandipriceserieslucknow = getmandi('Devariya',True)
 mandiarrivalserieslucknow = getmandi('Devariya',False)
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
-mandipriceseriesmumbai = mandipriceseries
-mandiarrivalseriesmumbai = mandiarrivalseries
 [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
 [mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
+# mandipriceseriesdelhi = pd.DataFrame()
 # mandipriceseriesdelhi = mandiP[3]
 # mandipriceserieslucknow = mandiP[4]
 # mandipriceseriesmumbai = mandiP[5]
 # mandiarrivalseriesdelhi = mandiA[3]
 # mandiarrivalserieslucknow = mandiA[4]
 # mandiarrivalseriesmumbai = mandiA[5]
+# # mandipriceseriesdelhi = mandipriceseriesdelhi2[1]
+# print type(mandipriceseriesdelhi)
+# print type(mandipriceserieslucknow)
+# print type(mandipriceseriesmumbai)
+
+# for i,j in mandipriceseriesdelhi2.iterrows():
+	# print i,j[0]
 # print mandipriceseriesdelhi
 
 def Normalise(arr):
@@ -110,11 +114,12 @@ def Normalise(arr):
 def adjust_anomaly_window(anomalies,series):
 	for i in range(0,len(anomalies)):
 		anomaly_period = series[anomalies[0][i]:anomalies[1][i]]
-		mid_date_index = anomaly_period[10:31].argmax()
-		# print type(mid_date_index),mid_date_index
-		# mid_date_index - timedelta(days=21)
-		anomalies[0][i] = mid_date_index - timedelta(days=21)
-		anomalies[1][i] = mid_date_index + timedelta(days=21)
+		mid_date_index = anomaly_period[10:31].idxmin()
+		# if(i==0):	
+		# 	print anomaly_period
+		# 	print mid_date_index
+		anomalies[0][i] = mid_date_index-timedelta(days=21)
+		anomalies[1][i] = mid_date_index+timedelta(days=21)
 		anomalies[0][i] = datetime.strftime(anomalies[0][i],'%Y-%m-%d')
 		anomalies[1][i] = datetime.strftime(anomalies[1][i],'%Y-%m-%d')
 	return anomalies
@@ -132,13 +137,14 @@ def get_anomalies_year(anomalies):
 		mid_date_labels.append(datetime.strftime(datetime.strptime(anomalies[0][i],'%Y-%m-%d')+timedelta(days=21),'%Y-%m-%d'))
 	return mid_date_labels
 
-anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',retailpriceseriesmumbai)
-anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',retailpriceseriesdelhi)
-anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',retailpriceserieslucknow)
+anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',mandiarrivalseriesmumbai)
+anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',mandiarrivalseriesdelhi)
+anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',mandiarrivalserieslucknow)
 
 delhi_anomalies_year = get_anomalies_year(anomaliesdelhi)
 mumbai_anomalies_year = get_anomalies_year(anomaliesmumbai)
 lucknow_anomalies_year = get_anomalies_year(anomalieslucknow)
+
 
 def newlabels(anomalies,oldlabels):
   print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
@@ -158,21 +164,19 @@ delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
 
-
 def prepare(anomalies,labels,priceserieslist):
 	x = []
 	for i in range(0,len(anomalies)):
-
 		p=[]
 		for j in range(0,len(priceserieslist)):
 			p += (Normalise(np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
 		x.append(np.array(p))
 	return np.array(x),np.array(labels)		
 
-x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi,mandipriceseriesdelhi])
-x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai,mandipriceseriesmumbai])
+x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,[retailpriceseriesdelhi,mandiarrivalseriesdelhi])
+x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,[retailpriceseriesmumbai,mandiarrivalseriesmumbai])
 # print x2[0]
-x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow,mandipriceserieslucknow])
+x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,[retailpriceserieslucknow,mandiarrivalserieslucknow])
 
 def getKey(item):
 	return item[0]
@@ -209,7 +213,7 @@ def get_score(xtrain,xtest,ytrain,ytest):
 	scaler = preprocessing.StandardScaler().fit(xtrain)
 	xtrain = scaler.transform(xtrain)
 	xtest = scaler.transform(xtest)
-	# model = RandomForestClassifier(max_depth=2, random_state=0)
+	# model = RandomForestClassifier(max_depth=1, random_state=0)
 	model = SVC(kernel='rbf', C=0.8)
 	model.fit(xtrain,ytrain)
 	test_pred = np.array(model.predict(xtest))
@@ -224,12 +228,9 @@ def get_score(xtrain,xtest,ytrain,ytest):
 
 xall = np.array(x1.tolist()+x2.tolist()+x3.tolist())
 yall = np.array(y1.tolist()+y2.tolist()+y3.tolist())
-xall_new =[]
-yall_new = []
-
 yearall = np.array(delhi_anomalies_year+mumbai_anomalies_year+lucknow_anomalies_year)
 assert(len(xall) == len(yearall))
-total_data, total_labels = partition(xall_new,yall_new,yearall,6)
+total_data, total_labels = partition(xall,yall,yearall,6)
 predicted = []
 actual_labels = []
 for i in range(0,len(total_data)):
@@ -246,11 +247,8 @@ for i in range(0,len(total_data)):
 	predicted = predicted + pred_test.tolist()
 predicted = np.array(predicted)
 actual_labels= np.array(actual_labels)
-print len(actual_labels)
-print sum(predicted == actual_labels)
-print actual_labels
-print predicted
-print f1_score(actual_labels,predicted,labels=[1,2,3,4,5,6],average="macro")
+print sum(predicted == actual_labels)/134.0
+
 '''
 LEAVE ONE OUT
 '''
