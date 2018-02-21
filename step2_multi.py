@@ -222,7 +222,24 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,data_d)
 	x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,data_m)
 	x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,data_l)
+	temp = 0
+	for y in y1:
+		if(y == 2 or y==3 or y==5):
+			temp = temp + 1 
+	print temp
 
+	temp = 0
+	for y in y2:
+		if(y == 2 or y==3 or y==5):
+			temp = temp + 1 
+	print temp
+	
+	temp = 0
+	for y in y3:
+		if(y == 2 or y==3 or y==5):
+			temp = temp + 1 
+	print temp
+	
 	delhi_anomalies_year = get_anomalies_year(anomaliesdelhi)
 	mumbai_anomalies_year = get_anomalies_year(anomaliesmumbai)
 	lucknow_anomalies_year = get_anomalies_year(anomalieslucknow)
