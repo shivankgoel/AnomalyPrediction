@@ -159,7 +159,7 @@ def prepare(anomalies,labels,priceserieslist):
 	for i in range(0,len(anomalies)):
 		p=[]
 		for j in range(0,len(priceserieslist)):
-			p += (Normalise(np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
+			p += ((np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
 			# if(i==0):
 			# 	print anomalies[0][i], anomalies[1][i]
 		x.append(np.array(p))
@@ -235,7 +235,7 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	# for x in range(0,len(xall)):
 	# 	print len(xall[x]),yall[x]
 	for y in range(0,len(yall)):
-		if( yall[y] == 2 or yall[y]==3 or yall[y]==5):
+		if( yall[y] == 2 or yall[y]==3 or yall[y]==5 or yall[y] == 1 or yall[y] == 4):
 			xall_new.append(xall[y])
 			yall_new.append(1)
 			yearall_new.append(yearall[y])
@@ -265,7 +265,7 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	predicted = np.array(predicted)
 	actual_labels= np.array(actual_labels)
 	# print len(actual_labels)
-	print sum(predicted == actual_labels)/172.0
+	print sum(predicted == actual_labels)/192.0
 	# print actual_labels
 	# print predicted
 	# print f1_score(actual_labels,predicted,labels=[0,1],average="macro")
@@ -288,7 +288,7 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow,mandiarrivalserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai/mandipriceseriesmumbai],[retailpriceseriesdelhi/mandipriceseriesdelhi],[retailpriceserieslucknow/mandipriceserieslucknow])
 

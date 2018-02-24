@@ -11,7 +11,7 @@ import matplotlib.dates as mdates
 
 font = {'family' : 'normal',
         #'weight' : 'bold',
-        'size'   : 15}
+        'size'   : 24}
 
 matplotlib.rc('font', **font)
 
@@ -344,10 +344,10 @@ fstart = CONSTANTS['STARTDATE']
 fend = CONSTANTS['ENDDATEOLD']
 #pstart = ['2016-04-01']
 #pend = ['2017-02-01']
-# pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
-# pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
-pstart = [fstart]
-pend = [fend]
+pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
+pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
+# pstart = [fstart]
+# pend = [fend]
 
 for i in range(0,len(pstart)):
     #Make All True Except First
