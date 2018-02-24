@@ -15,10 +15,11 @@ from averageretail import retailpriceseries
 
 mp = mandipriceseries
 rp = retailpriceseries
+idx = mp.index
 # mp = mandipriceseries.resample('W').mean()
 # rp = retailpriceseries.resample('W').mean()
 
-mp,rp = shuffle(mp,rp)
+idx,mp,rp = shuffle(idx,mp,rp)
 
 # X = np.array(mp)
 # Y = np.array(rp)
