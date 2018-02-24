@@ -34,8 +34,8 @@ def load_wholesale_data():
   START = CONSTANTS['STARTDATE']
   END = CONSTANTS['ENDDATE']
   wholeSalePA = pd.read_csv(CONSTANTS['ORIGINALMANDI'], header=None)
-  wholeSalePA = wholeSalePA[wholeSalePA[WA] > 0]
-  wholeSalePA = wholeSalePA[wholeSalePA[WP] > 0]
+  wholeSalePA = wholeSalePA[wholeSalePA[WA] > 0.0]
+  wholeSalePA = wholeSalePA[wholeSalePA[WP] > 0.0]
   wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WA])]
   wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WP])]
   wholeSalePA = wholeSalePA[wholeSalePA[0] >= START]
