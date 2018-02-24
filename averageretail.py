@@ -64,8 +64,6 @@ def rwhiten(series):
 
 def load_retail_data():
   RP = 2
-  START = CONSTANTS['STARTDATE']
-  END = CONSTANTS['ENDDATE']
   CENTREID = 1
   retailP = pd.read_csv(CONSTANTS['ORIGINALRETAIL'], header=None)
   retailP = retailP[retailP[RP] != 0]

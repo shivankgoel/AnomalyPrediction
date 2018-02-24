@@ -27,11 +27,8 @@ dict_statecode_statename = state_info.groupby('statecode')['state'].apply(list).
 dict_statename_statecode = state_info.groupby('state')['statecode'].apply(list).to_dict() 
 
 
-start = '2015-06-14'
-end = '2017-11-30'
-
-src = '/home/shivankgoel/Desktop/shivank-final/data/new/Maharashtra'
-dest = '/home/shivankgoel/Desktop/shivank-final/data/new/Maharashtra'
+src = 'c:/btp/shivankfinal/data/new/Delhi'
+dest = 'c:/btp/shivankfinal/data/new/Delhi'
 
 files = [f for f in listdir(src+'/Wholesale')]
 
