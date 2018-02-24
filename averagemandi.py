@@ -76,7 +76,7 @@ imagenames = [f for f in listdir('plots/bigmandis10')]
 # WP = 7
 # WA = 2
 wholeSalePA = load_wholesale_data()
-
+exit()
 def getmandi(mandiname,price):
   if price:
     switch = 7
