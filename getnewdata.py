@@ -8,6 +8,12 @@ import math
 from os import listdir
 import datetime as datetime
 
+def isInt(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 mandi_info = pd.read_csv('data/original/mandis.csv')
 dict_centreid_mandicode = mandi_info.groupby('centreid')['mandicode'].apply(list).to_dict()
@@ -34,7 +40,7 @@ files = [f for f in listdir(src+'/Wholesale')]
 
 code=-1
 
-newfile = open(src+'/wholesale2.csv','a')
+newfile = open(src+'/wholesale3.csv','a')
 
 for j in range(0,len(files)):
 	file = files[j]
@@ -54,6 +60,12 @@ for j in range(0,len(files)):
 			minp = temp[4]
 			maxp = temp[5]
 			modalp = temp[6]
+			if not isInt(minp):
+				minp = '0'
+			if not isInt(maxp):
+				maxp = '0'
+			if not isInt(modalp):
+				modalp = '0'
 			if mandi != '':
 				print 1,mandi
 				if mandi in dict_mandiname_mandicode.keys():
