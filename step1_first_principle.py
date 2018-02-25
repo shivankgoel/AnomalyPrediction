@@ -76,7 +76,7 @@ retailpriceserieslucknow = getcenter('LUCKNOW')
 retailpriceseriesbhub = getcenter('BHUBANESHWAR')
 retailpriceseriespatna = getcenter('PATNA')
 
-[retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai] = whiten_series_list([retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai])
+# [retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai] = whiten_series_list([retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai])
 
 from averagemandi import getmandi
 mandipriceseriesdelhi = getmandi('Azadpur',True)
@@ -87,15 +87,21 @@ from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
 mandipriceseriesmumbai = mandipriceseries
 mandiarrivalseriesmumbai = mandiarrivalseries
-[mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
-[mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
-# mandipriceseriesdelhi = mandiP[3]
-# mandipriceserieslucknow = mandiP[4]
-# mandipriceseriesmumbai = mandiP[5]
-# mandiarrivalseriesdelhi = mandiA[3]
-# mandiarrivalserieslucknow = mandiA[4]
-# mandiarrivalseriesmumbai = mandiA[5]
-# print mandipriceseriesdelhi
+# [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
+# [mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
+
+'''
+Returns average series from start date to end date after rolling.
+If end-start > 1year the pattern repeats
+'''
+def give_average_series(start,end,mandiarrivalseries):
+  mandiarrivalexpected = mandiarrivalseries.rolling(window=30,center=True).mean()
+  #mandiarrivalexpected = mandiarrivalseries
+  mandiarrivalexpected = mandiarrivalexpected.groupby([mandiarrivalseries.index.month, mandiarrivalseries.index.day]).mean()
+  idx = pd.date_range(start, end)
+  data = [ (mandiarrivalexpected[index.month][index.day]) for index in idx]
+  expectedarrivalseries = pd.Series(data, index=idx)
+  return expectedarrivalseries
 
 
 def adjust_anomaly_window(anomalies,series):
@@ -143,6 +149,17 @@ def newlabels(anomalies,oldlabels):
 			k = k+1
 	return labels
 
+def Normalise(arr):
+  '''
+  Normalise each sample
+  '''
+  m = arr.mean()
+  am = arr.min()
+  aM = arr.max()
+  arr -= m
+  arr /= (aM - am)
+  return arr
+
 
 
 
@@ -156,12 +173,26 @@ def prepare(anomalies,labels,priceserieslist):
 	return np.array(x),np.array(labels)		
 
 
+def cost_function(yaxis,xaxis,start,end):
+	regr = linear_model.LinearRegression()
+	regr.fit(xaxis,yaxis)
+	return regr.coef_[0]
+
+def cost_function2(yaxis,xaxis,start,end):
+	a = yaxis.min()
+	b = yaxis.max()
+	return b-a
+
+
+
 
 
 def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
-	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m,False)
 	anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',align_d,False)
+	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m,False)
 	anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',align_l,False)
+	anomaliesall = anomaliesdelhi + anomaliesmumbai + anomalieslucknow
+	
 	delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 	lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 	mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
@@ -183,13 +214,17 @@ def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
 	
 	xaxis = np.array(xaxis)
 	for i in range(0,len(yall)):
-		regr = linear_model.LinearRegression()
-		# print xaxis
-		# print xall[i]
-		regr.fit(xaxis,xall[i])
-		# print len(xall[i])
-		print yall[i], " ------>  ",regr.coef_[0]
-		slope.append(regr.coef_[0])
+		
+		parameter = cost_function(xall[i],xaxis,anomaliesall[0][i],anomalies[1][i])
+		slope.append((parameter,yall[i]))
+	slope.sort(reverse = True)
+	
+	for i in range(0,len(slope)):
+		print slope[i][1], "------>  ",slope[i][0]
+		
+
+	
+
 
 	
 
