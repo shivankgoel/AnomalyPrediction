@@ -173,12 +173,17 @@ def prepare(anomalies,labels,priceserieslist):
 	return np.array(x),np.array(labels)		
 
 
-def cost_function(yaxis,xaxis,start,end):
+def cost_function(yaxis,start,end):
+	xaxis = []
+	for i in range(1,44):
+		xaxis.append([i])
+	
+	xaxis = np.array(xaxis)
 	regr = linear_model.LinearRegression()
 	regr.fit(xaxis,yaxis)
 	return regr.coef_[0]
 
-def cost_function2(yaxis,xaxis,start,end):
+def cost_function2(yaxis,start,end):
 	a = yaxis.min()
 	b = yaxis.max()
 	return b-a
@@ -188,37 +193,64 @@ def cost_function2(yaxis,xaxis,start,end):
 
 
 def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
-	anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',align_d,False)
-	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m,False)
-	anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',align_l,False)
-	anomaliesall = anomaliesdelhi + anomaliesmumbai + anomalieslucknow
+	anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',align_d,True)
+	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m,True)
+	anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',align_l,True)
 	
+	anomaliesall = pd.concat([anomaliesdelhi,anomaliesmumbai,anomalieslucknow],ignore_index = True)
+	
+
 	delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 	lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 	mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
-	delhi_anomalies_year = get_anomalies_year(anomaliesdelhi)
-	mumbai_anomalies_year = get_anomalies_year(anomaliesmumbai)
-	lucknow_anomalies_year = get_anomalies_year(anomalieslucknow)
+	
 	x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,data_d)
 	x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,data_m)
 	x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,data_l)
 	xall = np.array(x1.tolist()+x2.tolist()+x3.tolist())
 	yall = np.array(y1.tolist()+y2.tolist()+y3.tolist())
 	
-	yearall_new = []
-	yearall = np.array(delhi_anomalies_year+mumbai_anomalies_year+lucknow_anomalies_year)
+
+	'''
+	normal Points mean those with labels 6 or 7
+	H / W mean hoarding and weather
+	F / I / T mean fuel , transport, inflation 
+	'''
+	normal_points_index = []
+	normal_points_value = []
+	h_w_points_index = []
+	h_w_points_value = []
+	f_i_t_points_index = []
+	f_i_t_points_value = []
+	
+
 	slope = []
-	xaxis = []
-	for i in range(1,44):
-		xaxis.append([i])
 	
-	xaxis = np.array(xaxis)
+	
 	for i in range(0,len(yall)):
-		
-		parameter = cost_function(xall[i],xaxis,anomaliesall[0][i],anomalies[1][i])
+		# print i
+		parameter = cost_function2(xall[i],anomaliesall[0][i],anomaliesall[1][i])
 		slope.append((parameter,yall[i]))
-	slope.sort(reverse = True)
+		if(yall[i] == 2 or yall[i] == 5):
+			h_w_points_index.append(i)
+			h_w_points_value.append(parameter)
+		elif(yall[i] == 6 or yall[i] == 7):
+			normal_points_index.append(i)
+			normal_points_value.append(parameter)
+		else:
+			f_i_t_points_index.append(i)
+			f_i_t_points_value.append(parameter)
+		
+	plt.scatter(h_w_points_index,h_w_points_value,color = 'red', label = "H / W")
+	plt.scatter(normal_points_index,normal_points_value,color = 'green', label = "Normal")
+	plt.scatter(f_i_t_points_index,f_i_t_points_value,color = 'black', label = "F / I / T")
 	
+	
+	slope.sort(reverse = True)
+	plt.xlabel('Anomaly')
+  	plt.ylabel('Parameter')
+  	plt.legend(loc = 'best')
+	plt.show()
 	for i in range(0,len(slope)):
 		print slope[i][1], "------>  ",slope[i][0]
 		
