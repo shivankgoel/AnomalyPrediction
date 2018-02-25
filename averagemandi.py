@@ -25,7 +25,7 @@ dict_statename_statecode = state_info.groupby('state')['statecode'].apply(list).
 
 
 START = CONSTANTS['STARTDATE']
-END = CONSTANTS['ENDDATEOLD']
+END = CONSTANTS['ENDDATE']
 
 
 def load_wholesale_data():
