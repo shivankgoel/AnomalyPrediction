@@ -11,7 +11,7 @@ import matplotlib.dates as mdates
 
 font = {'family' : 'normal',
         #'weight' : 'bold',
-        'size'   : 15}
+        'size'   : 24}
 
 matplotlib.rc('font', **font)
 

@@ -15,15 +15,14 @@ import os
 cwd = os.getcwd()
 
 '''
-This file checks the accuracies for only four classes of periods - Hoarding, Weather, Inflation and Normal
 '''
 
 
 
 
-delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5]
-lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2]
-mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5]
+delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5,5,2,2,2,3,1,5,1,2]
+lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2,3,2,2,5,3,2,5,2]
+mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5,3,2,5,2,5,3,2,1,5,5,2,1,2,2,2,1,5,5,2]
 
 '''
 ['BHUBANESHWAR']
@@ -158,8 +157,9 @@ def prepare(anomalies,labels,priceserieslist):
 	for i in range(0,len(anomalies)):
 		p=[]
 		for j in range(0,len(priceserieslist)):
-			p += (Normalise(np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
-			#p += ((np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
+			# p += (Normalise(np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
+			p += ((np.array(priceserieslist[j][anomalies[0][i]:anomalies[1][i]].tolist()))).tolist()
+
 			# if(i==0):
 			# 	print anomalies[0][i], anomalies[1][i]
 		x.append(np.array(p))
@@ -235,7 +235,7 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	# for x in range(0,len(xall)):
 	# 	print len(xall[x]),yall[x]
 	for y in range(0,len(yall)):
-		if( yall[y] == 2 or yall[y]==3 or yall[y]==5):
+		if( yall[y] == 2 or yall[y]==3 or yall[y]==5 or yall[y] == 1 or yall[y] == 4):
 			xall_new.append(xall[y])
 			yall_new.append(1)
 			yearall_new.append(yearall[y])
@@ -265,14 +265,14 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	predicted = np.array(predicted)
 	actual_labels= np.array(actual_labels)
 	# print len(actual_labels)
-	print sum(predicted == actual_labels)/172.0
+	print sum(predicted == actual_labels)/192.0
 	# print actual_labels
 	# print predicted
 	# print f1_score(actual_labels,predicted,labels=[0,1],average="macro")
 	from sklearn.metrics import confusion_matrix
 	print confusion_matrix(actual_labels,predicted)
 
-
+# print type(retailpriceseriesmumbai)
 # train_test_function(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
 # train_test_function(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
 # train_test_function(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
@@ -285,7 +285,7 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
-train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
+# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow])
 # train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])
