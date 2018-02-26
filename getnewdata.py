@@ -33,18 +33,18 @@ dict_statecode_statename = state_info.groupby('statecode')['state'].apply(list).
 dict_statename_statecode = state_info.groupby('state')['statecode'].apply(list).to_dict() 
 
 
-src = 'c:/btp/shivankfinal/data/new/Delhi'
-dest = 'c:/btp/shivankfinal/data/new/Delhi'
+src = 'c:/btp/shivankfinal/data/new/Lucknow/Bahraich'
+dest = 'c:/btp/shivankfinal/data/new/Lucknow/Bahraich'
 
-files = [f for f in listdir(src+'/Wholesale')]
+files = [f for f in listdir(src)]
 
 code=-1
 
-newfile = open(src+'/wholesale3.csv','a')
+newfile = open(src+'/wholesale4.csv','a')
 
 for j in range(0,len(files)):
 	file = files[j]
-	with open(src+'/Wholesale/'+file) as f:
+	with open(src+'/'+file) as f:
 		content = f.readlines()
 	for i in range(1,len(content)):
 		temp = content[i].strip().split(',')

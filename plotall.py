@@ -69,6 +69,10 @@ from averagemandi import specificarrivalseries
 from averagemandi import specificpriceseries
 
 from averageretail import retailpriceseries
+from averageretail import getcenter
+retailpriceseriesmumbai = getcenter('MUMBAI')
+retailpriceseriesdelhi = getcenter('DELHI')
+retailpriceserieslucknow = getcenter('LUCKNOW')
 from averageretail import specificretailprice
 
 from average_export import exportseries
@@ -165,7 +169,7 @@ def plotarrival(start,end,averagetoo,roll=False):
     plot_series(b,'Average Arrival',2)
     ma = b
     mstd = give_std_series(start,end,mandiarrivalseries)
-    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[2], alpha=0.2)
+    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[2], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -183,7 +187,7 @@ def plotmandiprice(start,end,averagetoo,roll=False):
     plot_series(b,'Average Mandi Price',4)
     ma = b
     mstd = give_std_series(start,end,mandipriceseries)
-    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[4], alpha=0.2)
+    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[4], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -201,7 +205,7 @@ def plotretailprice(start,end,averagetoo,roll=False):
     plot_series(b,'Average Retail Price',4)
     ma = b
     mstd = give_std_series(start,end,retailpriceseries)
-    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[4], alpha=0.2)
+    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[4], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 

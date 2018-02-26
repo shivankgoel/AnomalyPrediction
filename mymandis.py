@@ -15,6 +15,7 @@ dict_mandiname_mandicode = mandi_info.groupby('mandiname')['mandicode'].apply(li
 
 centre_info = pd.read_csv('data/original/centres.csv')
 dict_centreid_centrename = centre_info.groupby('centreid')['centrename'].apply(list).to_dict()
+dict_centrename_centreid = centre_info.groupby('centrename')['centreid'].apply(list).to_dict()
 dict_centreid_statecode = centre_info.groupby('centreid')['statecode'].apply(list).to_dict()
 dict_statecode_centreid = centre_info.groupby('statecode')['centreid'].apply(list).to_dict()
 
