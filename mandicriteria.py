@@ -67,14 +67,19 @@ def checkcriteria(series):
 
 lucknowmandis = [797, 898, 1092, 295, 1141, 522, 549, 1107, 277, 558, 1120, 545, 323,1086, 1085, 405, 749, 1093, 550, 761, 887, 284, 1121, 524, 324, 319, 1087, 885, 1089, 1094, 584]
 lucknowmandis2 = [884, 553, 285, 326, 278, 288, 1158, 951, 906, 272]
+
+mumbaimandis = [430, 798, 424, 655, 155, 1551, 162, 505, 378, 1367, 930, 1365, 854, 720, 157, 602, 1169, 149, 544, 143, 375, 150, 838, 426, 153, 905, 537, 1428, 163, 1377, 377, 429, 156, 1190, 423, 428, 939, 1041, 427, 422, 146, 474, 792, 853, 862, 160, 477, 540, 937, 144, 769, 425, 476, 897, 502, 1029, 1058, 1249, 1378, 148]
+nagpurmandis = [1053, 1579, 1227, 379,667]
+
 lnames = ['Gonda','Lakhimpur','Sitapur' ,'Devariya','Bijnaur' ,'Lucknow' ,'Chandoli' ,'Bahraich' , 'Faizabad' ]
 
 # for name in lnames:
-# 	#name = dict_mandicode_mandiname[m][0]
-# 	series = getmandi2(name,True)
+# 	# print mcode
+# 	# name = dict_mandicode_mandiname[mcode][0]
+# 	series = getmandi2(name,False)
 # 	r,m = checkcriteria(series)
 # 	if r > 0.50:
-# 		print name,r,m
+# 		print name,r,m, series.mean()
 
 
 '''
@@ -122,4 +127,16 @@ m6 = getmandi2('Pune',True)
 0.81067961165 22
 0.65648118366 58
 0.720167256353 27
+'''
+
+'''
+Gonda 0.6678802589 196 26.5979485698
+Lakhimpur 0.71642394822 62 7.7436174516
+Sitapur 0.758090614887 97 14.8438890494
+Devariya 0.717233009709 225 44.468650679
+Bijnaur 0.696601941748 457 1.51853221612
+Lucknow 0.791666666667 101 55.3026004045
+Chandoli 0.634708737864 123 3.19803524993
+Bahraich 0.81067961165 22 26
+Faizabad 0.894822006472 74 13.2631175961
 '''

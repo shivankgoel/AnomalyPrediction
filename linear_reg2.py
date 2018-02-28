@@ -2,12 +2,18 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import pandas as pd
 from datetime import datetime
 # mandipriceseries = mandipriceseries['2013-02-01':'2013-10-24']
 # retailpriceseries = retailpriceseries['2013-02-01':'2013-10-24']
 
+font = {'family' : 'normal',
+        #'weight' : 'bold',
+        'size'   : 18}
+
+matplotlib.rc('font', **font)
 
 def get_anomalies(path):
 	anomalies = pd.read_csv(path, header=None, index_col=None)
@@ -19,10 +25,13 @@ anomaliesmumbai = get_anomalies('data/anomaly/mumbai.csv')
 anomaliesdelhi = get_anomalies('data/anomaly/delhi.csv')
 anomalieslucknow = get_anomalies('data/anomaly/lucknow.csv')
 
-delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5]
-lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2]
-mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5]
+# delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5]
+# lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2]
+# mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5]
 
+delhilabels = [2,4,1,3,1,2,2,2,3,4,1,2,2,1,4,2,5,5,2,2,3,1,5,4,2,5,5,5,3,5,3,5,2,2,5,2,2,5,5,5,2,5,5,5,2,2,2,3,1,5,1,2]
+lucknowlabels = [2,1,1,2,2,2,5,4,3,1,5,5,5,3,2,2,5,5,4,3,4,5,4,2,5,5,5,5,2,2,3,2,2,5,3,2,5,2]
+mumbailabels = [2,2,2,3,5,1,2,5,2,5,2,2,2,4,2,3,2,3,3,1,1,2,5,5,3,3,2,5,3,5,5,5,2,5,5,5,2,5,2,5,3,2,5,2,5,3,2,1,5,5,2,1,2,2,2,1,5,5,2]
 
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries

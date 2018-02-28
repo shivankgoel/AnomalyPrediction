@@ -11,7 +11,7 @@ import matplotlib.dates as mdates
 
 font = {'family' : 'normal',
         #'weight' : 'bold',
-        'size'   : 24}
+        'size'   : 18}
 
 matplotlib.rc('font', **font)
 
@@ -67,6 +67,9 @@ from averagemandi import mandiarrivalseries
 from averagemandi import mandipriceseries
 from averagemandi import specificarrivalseries
 from averagemandi import specificpriceseries
+from averagemandi import getmandi
+# mandipriceseries = getmandi('Pune',True)
+# mandiarrivalseries = getmandi('Pune',False)
 
 from averageretail import retailpriceseries
 from averageretail import getcenter
@@ -169,7 +172,7 @@ def plotarrival(start,end,averagetoo,roll=False):
     plot_series(b,'Average Arrival',2)
     ma = b
     mstd = give_std_series(start,end,mandiarrivalseries)
-    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[2], alpha=0.2)
+    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[2], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -187,7 +190,7 @@ def plotmandiprice(start,end,averagetoo,roll=False):
     plot_series(b,'Average Mandi Price',4)
     ma = b
     mstd = give_std_series(start,end,mandipriceseries)
-    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[4], alpha=0.2)
+    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[4], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -205,7 +208,7 @@ def plotretailprice(start,end,averagetoo,roll=False):
     plot_series(b,'Average Retail Price',4)
     ma = b
     mstd = give_std_series(start,end,retailpriceseries)
-    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[4], alpha=0.2)
+    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[4], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -338,29 +341,57 @@ def linear_reg(x,y):
   plt.show()
 
 
-'''
-weather only: '01-06-2007','31-12-2007'
+from averageretail import getcenter
 
-'''
+def paperfig1():
+  fig, ax1 = plt.subplots()
+  ax1.set_xlabel('Months')
+  ax1.set_ylabel('Arrival in MT')
+  start = '2006-11-01' 
+  end = '2008-01-01'
+  pricel = give_average_series(start,end,getmandi('Lasalgaon',False))
+  pricedel = give_average_series(start,end,getmandi('Azadpur',False))
+  price2 = give_average_series(start,end,getmandi('Bahraich',False))
+  # pricel = give_average_series(start,end,getcenter('MUMBAI'))
+  # pricedel = give_average_series(start,end,getcenter('DELHI'))
+  # price2 = give_average_series(start,end,getcenter('LUCKNOW'))
+  plot_series_axis(pricel,'Lasalgaon',4,ax1)
+  plot_series_axis(pricedel,'Azadpur',6,ax1)
+  plot_series_axis(price2,'Bahraich',3,ax1)
+  # plot_series_axis(pricel,'MUMBAI',4,ax1)
+  # plot_series_axis(pricedel,'DELHI',6,ax1)
+  # plot_series_axis(price2,'LUCKNOW',3,ax1)
+  ax1.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+  ax1.xaxis.set_major_locator(mdates.MonthLocator(bymonth=(1,2,3,4,5,6,7,8,9,10,11,12),bymonthday=1))
+  ax1.legend(loc='best')
+  plt.show()
 
 
 fstart = CONSTANTS['STARTDATE']
-fend = CONSTANTS['ENDDATEOLD']
-#pstart = ['2016-04-01']
-#pend = ['2017-02-01']
-pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
-pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
-# pstart = [fstart]
-# pend = [fend]
+fend = CONSTANTS['ENDDATE']
 
-for i in range(0,len(pstart)):
-    #Make All True Except First
-    plotweather(pstart[i],pend[i],True,False)
-    plotarrival(pstart[i],pend[i],True,True)
-    plotmandiprice(pstart[i],pend[i],True,True)
-    plotretailprice(pstart[i],pend[i],True,True)
-    plotretailvsmandi(pstart[i],pend[i],True,False)
-    plotsingleseries(retailpriceseries-mandipriceseries,'Difference','Time','Price per Quintal',pstart[i],pend[i],False,False )
+def showpaperfig():
+  # pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
+  # pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
+  # pstart = ['2016-07-01']
+  # pend = ['2017-02-01']
+  pstart = ['2017-04-01']
+  pend = ['2017-10-01'] 
+  # pstart = [fstart]
+  # pend = [fend]
+  for i in range(0,len(pstart)):
+      #Make All True Except First
+      plotweather(pstart[i],pend[i],True,False)
+      plotarrival(pstart[i],pend[i],True,True)
+      plotmandiprice(pstart[i],pend[i],True,False)
+      plotretailprice(pstart[i],pend[i],True,False)
+      plotretailvsmandi(pstart[i],pend[i],True,True)
+      plotsingleseries(retailpriceseries-mandipriceseries,'Difference','Time','Price per Quintal',pstart[i],pend[i],False,False )
+
+showpaperfig()
+#paperfig1()
+
+
 
 # plotsingleseries(exportseries,'Export','Time','Export in Metric Tons',pstart,pend,False,True)
 # plotcpi(fstart,fend,False,False)

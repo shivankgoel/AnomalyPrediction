@@ -13,6 +13,13 @@ from averagemandi import expectedarrivalseries
 from averagemandi import expectedmandiprice
 from averageretail import retailpriceseries
 
+font = {'family' : 'normal',
+        #'weight' : 'bold',
+        'size'   : 18}
+
+matplotlib.rc('font', **font)
+
+
 mp = mandipriceseries
 rp = retailpriceseries
 idx = mp.index

@@ -129,6 +129,12 @@ def getcenter(centrename):
   price = RemoveNaNFront(price)
   return price
 
+def getcenter2(centrename):
+  code = dict_centrename_centreid[centrename][0]
+  series = CreateCentreSeries(code,retailP)
+  price = series[RP]   
+  return price
+
 def give_df_imagenames_center(imagenames):
   centreSeries = []
   RP=2
