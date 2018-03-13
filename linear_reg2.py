@@ -116,5 +116,8 @@ for i in range(0,len(rp2)):
 
 
 plt.plot(mp2, rp2_pred, color='red', linewidth=3, label='Predicted')
+plt.xlabel('Mandi Price')
+plt.ylabel('Retail Price')
+plt.title('Retail vs Mandi Price')
 plt.legend(loc='best')
 plt.show()

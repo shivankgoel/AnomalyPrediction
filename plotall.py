@@ -136,7 +136,7 @@ def plotweather(start,end,averagetoo,roll=False):
     plot_series(b,'Average Rainfall',4)
     ma=b
     mstd = give_std_series(start,end,rainfallmonthly)
-    plt.fill_between(mstd.index, ma-0.5*mstd, ma+0.5*mstd, color=colors[4], alpha=0.2)
+    plt.fill_between(mstd.index, ma-mstd, ma+mstd, color=colors[4], alpha=0.2)
   plt.legend(loc='best')
   plt.show()
 
@@ -371,12 +371,14 @@ fstart = CONSTANTS['STARTDATE']
 fend = CONSTANTS['ENDDATE']
 
 def showpaperfig():
-  # pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
-  # pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
+  pstart = ['2013-03-01','2010-03-01','2007-01-01','2006-04-01','2008-05-01']
+  pend = ['2014-04-01','2011-05-01','2008-05-01','2007-03-01','2009-01-01']
   # pstart = ['2016-07-01']
   # pend = ['2017-02-01']
-  pstart = ['2017-04-01']
-  pend = ['2017-10-01'] 
+  # pstart = ['2017-04-01']
+  # pend = ['2017-10-01']
+  # pstart = ['2016-11-01']
+  # pend = ['2017-10-31'] 
   # pstart = [fstart]
   # pend = [fend]
   for i in range(0,len(pstart)):
