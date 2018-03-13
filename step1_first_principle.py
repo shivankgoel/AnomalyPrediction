@@ -81,8 +81,8 @@ retailpriceseriespatna = getcenter('PATNA')
 from averagemandi import getmandi
 mandipriceseriesdelhi = getmandi('Azadpur',True)
 mandiarrivalseriesdelhi = getmandi('Azadpur',False)
-mandipriceserieslucknow = getmandi('Devariya',True)
-mandiarrivalserieslucknow = getmandi('Devariya',False)
+mandipriceserieslucknow = getmandi('Bahraich',True)
+mandiarrivalserieslucknow = getmandi('Bahraich',False)
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
 mandipriceseriesmumbai = mandipriceseries
@@ -120,8 +120,8 @@ def get_anomalies(path,series,align):
 	anomalies = pd.read_csv(path, header=None, index_col=None)
 	anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%Y-%m-%d'),'%Y-%m-%d') for date in anomalies[0]]
 	anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %Y-%m-%d'),'%Y-%m-%d') for date in anomalies[1]]
-	for i in range(0,len(anomalies[0])):
-		print anomalies[0][i], anomalies[1][i]
+	# for i in range(0,len(anomalies[0])):
+	# 	print anomalies[0][i], anomalies[1][i]
 	if align:
 		anomalies = adjust_anomaly_window(anomalies,series)
 	return anomalies
@@ -134,20 +134,33 @@ def get_anomalies_year(anomalies):
 
 
 
+# def newlabels(anomalies,oldlabels):
+#   # print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
+# 	labels = []
+# 	k=0
+# 	for i in range(0,len(anomalies)):
+# 		if(anomalies[2][i] == ' Normal'):
+# 			labels.append(7)
+# 		elif(anomalies[2][i] == ' NormalR'):
+# 			labels.append(6)
+# 		else:
+# 			labels.append(oldlabels[k])
+#       #print k,oldlabels[k]
+# 			k = k+1
+# 	return labels
+
 def newlabels(anomalies,oldlabels):
-  # print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
-	labels = []
-	k=0
-	for i in range(0,len(anomalies)):
-		if(anomalies[2][i] == ' Normal'):
-			labels.append(7)
-		elif(anomalies[2][i] == ' NormalR'):
-			labels.append(6)
-		else:
-			labels.append(oldlabels[k])
+  # print len(anomalies[anomalies[2] != ' Normal_train']), len(oldlabels)
+  labels = []
+  k=0
+  for i in range(0,len(anomalies)):
+    if(anomalies[2][i] != ' Normal_train'):
+      labels.append(oldlabels[k])
       #print k,oldlabels[k]
-			k = k+1
-	return labels
+      k = k+1
+    else:
+      labels.append(8)
+  return labels
 
 def Normalise(arr):
   '''
@@ -172,30 +185,50 @@ def prepare(anomalies,labels,priceserieslist):
 		x.append(np.array(p))
 	return np.array(x),np.array(labels)		
 
+DAYS = 21
 
-def cost_function(yaxis,start,end):
+
+def cost_function(yaxis,start,end,days):
 	xaxis = []
-	for i in range(1,44):
+	for i in range(1,days+1):
 		xaxis.append([i])
-	
+	yaxis = yaxis[0:days]
 	xaxis = np.array(xaxis)
+	# print len(xaxis), len(yaxis)
 	regr = linear_model.LinearRegression()
 	regr.fit(xaxis,yaxis)
+
 	return regr.coef_[0]
 
-def cost_function2(yaxis,start,end):
+def cost_function2(yaxis,start,end,days):
+	yaxis = yaxis[0:days]
 	a = yaxis.min()
 	b = yaxis.max()
+	# if( b- a > 10000):
+	# 	print yaxis
 	return b-a
 
-
+def cost_function3(yaxis,start,end,series,days):
+	avg = give_average_series(start,end,series)
+	avg = np.array(avg)
+	deviation = yaxis - avg
+	# print len(avg), len(yaxis), len(deviation)
+	# print type(avg), type(yaxis), type(deviation)
+	# print avg
+	# print yaxis
+	# print deviation
+	deviation = deviation[0:days]
+	return deviation.mean()
+	# return 0
 
 
 
 def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
-	anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',align_d,True)
-	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m,True)
-	anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',align_l,True)
+	
+	anomaliesdelhi = get_anomalies('data/anomaly/normal_h_w_delhi.csv',align_d,True)
+	anomaliesmumbai = get_anomalies('data/anomaly/normal_h_w_mumbai.csv',align_m,True)
+	anomalieslucknow = get_anomalies('data/anomaly/normal_h_w_lucknow.csv',align_l,True)
+
 	
 	anomaliesall = pd.concat([anomaliesdelhi,anomaliesmumbai,anomalieslucknow],ignore_index = True)
 	
@@ -203,14 +236,14 @@ def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
 	delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 	lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 	mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
-	
+	# print delhilabelsnew
 	x1,y1 = prepare(anomaliesdelhi,delhilabelsnew,data_d)
 	x2,y2 = prepare(anomaliesmumbai,mumbailabelsnew,data_m)
 	x3,y3 = prepare(anomalieslucknow,lucknowlabelsnew,data_l)
 	xall = np.array(x1.tolist()+x2.tolist()+x3.tolist())
 	yall = np.array(y1.tolist()+y2.tolist()+y3.tolist())
 	
-
+	print len(y1),len(y2)
 	'''
 	normal Points mean those with labels 6 or 7
 	H / W mean hoarding and weather
@@ -229,15 +262,27 @@ def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
 	
 	for i in range(0,len(yall)):
 		# print i
-		parameter = cost_function2(xall[i],anomaliesall[0][i],anomaliesall[1][i])
+		# if( i < len(y1)):
+		# 	parameter = cost_function3(xall[i],anomaliesall[0][i],anomaliesall[1][i],retailpriceseriesdelhi,DAYS)
+		# elif( i < (len(y1)+len(y2)) ):
+		# 	parameter = cost_function3(xall[i],anomaliesall[0][i],anomaliesall[1][i],retailpriceseriesmumbai,DAYS)
+		# else:
+		# 	parameter = cost_function3(xall[i],anomaliesall[0][i],anomaliesall[1][i],retailpriceserieslucknow,DAYS)
+
+		parameter = cost_function(xall[i],anomaliesall[0][i],anomaliesall[1][i],DAYS)
+		# parameter = cost_function2(xall[i],anomaliesall[0][i],anomaliesall[1][i],DAYS)
+		# if( parameter == 0):
+		# 	if(yall[i] == 5):
+		# 		print xall[i][0:DAYS]
+		print i,"  ",anomaliesall[0][i],"------> ",parameter
 		slope.append((parameter,yall[i]))
-		if(yall[i] == 2 or yall[i] == 5):
+		if(yall[i] == 2 or yall[i] == 5 ):
 			h_w_points_index.append(i)
 			h_w_points_value.append(parameter)
-		elif(yall[i] == 6 or yall[i] == 7):
+		elif(yall[i] == 8):
 			normal_points_index.append(i)
 			normal_points_value.append(parameter)
-		else:
+		elif(yall[i] == 3):
 			f_i_t_points_index.append(i)
 			f_i_t_points_value.append(parameter)
 		
@@ -247,12 +292,54 @@ def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
 	
 	
 	slope.sort(reverse = True)
-	plt.xlabel('Anomaly')
-  	plt.ylabel('Parameter')
+	plt.tick_params()
+	plt.xlabel('Anomaly',fontsize = 20)
+  	# plt.ylabel('Parameter (Mean Deviation of Retail Price from average R.P(over all years))',fontsize = 20)
+  	# plt.ylabel('Parameter (Slope of Retail Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Max - Min for Retail Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Mean Deviation of Mandi Price from average M.P(over all years))',fontsize = 20)
+  	plt.ylabel('Parameter (Slope of Mandi Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Max - Min for Mandi Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Slope of Retail - Mandi Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Max - Min of Retail - Mandi Price during the window)',fontsize = 20)
+  	# plt.ylabel('Parameter (Mean Deviation of Retail - Mandi Price during the window)',fontsize = 20)
+
+
   	plt.legend(loc = 'best')
 	plt.show()
-	for i in range(0,len(slope)):
-		print slope[i][1], "------>  ",slope[i][0]
+	
+
+	step_1_pass= []
+	threshold = 0
+	for i in range(0,len(yall)):
+		if(yall[i] == 2 or yall[i] == 5 or yall[i] == 8 or yall[i] == 3):
+			parameter = cost_function(xall[i][0:43],anomaliesall[0][i],anomaliesall[1][i],DAYS)
+			parameter2 = cost_function(xall[i][43:],anomaliesall[0][i],anomaliesall[1][i],DAYS)
+			
+			if(parameter > threshold and parameter2 > threshold):
+				if( i < len(y1)):
+					step_1_pass.append((i,yall[i],0))
+				elif( i < (len(y1)+len(y2)) ):
+					step_1_pass.append((i,yall[i],1))
+				else:
+					step_1_pass.append((i,yall[i],2))
+				
+
+	
+	file = open('data/anomaly/qualify_mumbai.csv','w')
+	for i in range(0,len(step_1_pass)):
+		if(step_1_pass[i][2] == 1):
+			file.write(str(anomaliesall[0][step_1_pass[i][0]])+", "+str(anomaliesall[1][step_1_pass[i][0]])+", "+str(step_1_pass[i][1])+"\n")
+	file = open('data/anomaly/qualify_delhi.csv','w')
+	for i in range(0,len(step_1_pass)):
+		if(step_1_pass[i][2] == 0):
+			file.write(str(anomaliesall[0][step_1_pass[i][0]])+", "+str(anomaliesall[1][step_1_pass[i][0]])+", "+str(step_1_pass[i][1])+"\n")
+	file = open('data/anomaly/qualify_lucknow.csv','w')
+	for i in range(0,len(step_1_pass)):
+		if(step_1_pass[i][2] == 2):
+			file.write(str(anomaliesall[0][step_1_pass[i][0]])+", "+str(anomaliesall[1][step_1_pass[i][0]])+", "+str(step_1_pass[i][1])+"\n")
+
+	return step_1_pass
 		
 
 	
@@ -262,8 +349,8 @@ def first_principle(align_m,align_d,align_l,data_m,data_d,data_l):
 
 # print type(retailpriceseriesmumbai)
 # first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
-first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
-# first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
+# first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
+first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
 # first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
 # first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow])
 # first_principle(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])

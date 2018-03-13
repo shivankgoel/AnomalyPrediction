@@ -38,8 +38,8 @@ Get Mandi Price Series
 from averagemandi import getmandi
 mandipriceseriesdelhi = getmandi('Azadpur',True)
 mandiarrivalseriesdelhi = getmandi('Azadpur',False)
-mandipriceserieslucknow = getmandi('Devariya',True)
-mandiarrivalserieslucknow = getmandi('Devariya',False)
+mandipriceserieslucknow = getmandi('Bahraich',True)
+mandiarrivalserieslucknow = getmandi('Bahraich',False)
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
 # [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
