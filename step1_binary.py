@@ -75,19 +75,19 @@ retailpriceserieslucknow = getcenter('LUCKNOW')
 retailpriceseriesbhub = getcenter('BHUBANESHWAR')
 retailpriceseriespatna = getcenter('PATNA')
 
-[retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai] = whiten_series_list([retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai])
+# [retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai] = whiten_series_list([retailpriceseriesdelhi,retailpriceserieslucknow,retailpriceseriesmumbai])
 
 from averagemandi import getmandi
 mandipriceseriesdelhi = getmandi('Azadpur',True)
 mandiarrivalseriesdelhi = getmandi('Azadpur',False)
-mandipriceserieslucknow = getmandi('Devariya',True)
-mandiarrivalserieslucknow = getmandi('Devariya',False)
+mandipriceserieslucknow = getmandi('Bahraich',True)
+mandiarrivalserieslucknow = getmandi('Bahraich',False)
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
 mandipriceseriesmumbai = mandipriceseries
 mandiarrivalseriesmumbai = mandiarrivalseries
-[mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
-[mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
+# [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
+# [mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
 # mandipriceseriesdelhi = mandiP[3]
 # mandipriceserieslucknow = mandiP[4]
 # mandipriceseriesmumbai = mandiP[5]
@@ -135,19 +135,17 @@ def get_anomalies_year(anomalies):
 
 
 def newlabels(anomalies,oldlabels):
-  # print len(anomalies[anomalies[2] != ' Normal']), len(oldlabels)
-	labels = []
-	k=0
-	for i in range(0,len(anomalies)):
-		if(anomalies[2][i] == ' Normal'):
-			labels.append(7)
-		elif(anomalies[2][i] == ' NormalR'):
-			labels.append(6)
-		else:
-			labels.append(oldlabels[k])
+  # print len(anomalies[anomalies[2] != ' Normal_train']), len(oldlabels)
+  labels = []
+  k=0
+  for i in range(0,len(anomalies)):
+    if(anomalies[2][i] != ' Normal_train'):
+      labels.append(oldlabels[k])
       #print k,oldlabels[k]
-			k = k+1
-	return labels
+      k = k+1
+    else:
+      labels.append(8)
+  return labels
 
 
 
@@ -176,25 +174,22 @@ def partition(xseries,yseries,year,months):
 	combined_series = sorted(combined_series,key=getKey)
 	train = []
 	train_labels = []
-	fixed = combined_series[0]
-	currx=[]
-	curry=[]
+	fixed = datetime.strptime('2006-01-01','%Y-%m-%d')
 	i=0
-	for anomaly in combined_series:
-		i += 1
-		# print anomaly[0]
-		if(datetime.strptime(anomaly[0],'%Y-%m-%d')-datetime.strptime(fixed[0],'%Y-%m-%d') <= timedelta(days=months*30)):
-			currx.append(anomaly[1])
-			curry.append(anomaly[2])
-			# print "I min if",i
-		else:
-			train.append(currx)
-			train_labels.append(curry)
-			currx=[anomaly[1]]
-			curry=[anomaly[2]]
-			fixed = anomaly
-	train.append(currx)
-	train_labels.append(curry)
+	while(fixed < datetime.strptime('2017-11-01','%Y-%m-%d')):
+		currx=[]
+		curry=[]
+		for anomaly in combined_series:
+			i += 1
+			if(datetime.strptime(anomaly[0],'%Y-%m-%d') > fixed and datetime.strptime(anomaly[0],'%Y-%m-%d')- fixed <= timedelta(days=months*30)):
+				currx.append(anomaly[1])
+				curry.append(anomaly[2])
+		train.append(currx)
+		train_labels.append(curry)
+		fixed = fixed +timedelta(days = months*30)
+	# print fixed
+	# train.append(currx)
+	# train_labels.append(curry)
 	return np.array(train),np.array(train_labels)
 
 def get_score(xtrain,xtest,ytrain,ytest):
@@ -202,7 +197,7 @@ def get_score(xtrain,xtest,ytrain,ytest):
 	xtrain = scaler.transform(xtrain)
 	xtest = scaler.transform(xtest)
 	model = RandomForestClassifier(max_depth=2, random_state=0)
-	# model = SVC(kernel='rbf', C=0.8)
+	# model = SVC( kernel='rbf', C=0.8)
 	model.fit(xtrain,ytrain)
 	test_pred = np.array(model.predict(xtest))
 	# ytest = np.array(ytest)
@@ -214,9 +209,9 @@ def get_score(xtrain,xtest,ytrain,ytest):
 
 
 def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
-	anomaliesmumbai = get_anomalies('data/anomaly/normalmumbai.csv',align_m)
-	anomaliesdelhi = get_anomalies('data/anomaly/normaldelhi.csv',align_d)
-	anomalieslucknow = get_anomalies('data/anomaly/normallucknow.csv',align_l)
+	anomaliesmumbai = get_anomalies('data/anomaly/normal_h_w_mumbai.csv',align_m)
+	anomaliesdelhi = get_anomalies('data/anomaly/normal_h_w_delhi.csv',align_d)
+	anomalieslucknow = get_anomalies('data/anomaly/normal_h_w_lucknow.csv',align_l)
 	delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
 	lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
 	mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
@@ -235,11 +230,11 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	# for x in range(0,len(xall)):
 	# 	print len(xall[x]),yall[x]
 	for y in range(0,len(yall)):
-		if( yall[y] == 2 or yall[y]==3 or yall[y]==5 or yall[y] == 1 or yall[y] == 4):
+		if( yall[y] == 2 or yall[y]==3 or yall[y]==5):
 			xall_new.append(xall[y])
 			yall_new.append(1)
 			yearall_new.append(yearall[y])
-		elif (yall[y] ==6 or yall[y] == 7):
+		elif (yall[y] == 8):
 			xall_new.append(xall[y])
 			yall_new.append(0)
 			yearall_new.append(yearall[y])
@@ -251,26 +246,27 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 	predicted = []
 	actual_labels = []
 	for i in range(0,len(total_data)):
-		test_split = total_data[i]
-		test_labels = total_labels[i]
-		actual_labels = actual_labels + test_labels
-		train_split = []
-		train_labels_split = []
-		for j in range(0,len(total_data)):
-			if( j != i):
-				train_split = train_split + total_data[j]
-				train_labels_split = train_labels_split+total_labels[j]
-		pred_test = get_score(train_split,test_split,train_labels_split,test_labels)	
-		predicted = predicted + pred_test.tolist()
+		if( len(total_data[i]) != 0):	
+			test_split = total_data[i]
+			test_labels = total_labels[i]
+			actual_labels = actual_labels + test_labels
+			train_split = []
+			train_labels_split = []
+			for j in range(0,len(total_data)):
+				if( j != i):
+					train_split = train_split + total_data[j]
+					train_labels_split = train_labels_split+total_labels[j]
+			pred_test = get_score(train_split,test_split,train_labels_split,test_labels)	
+			predicted = predicted + pred_test.tolist()
 	predicted = np.array(predicted)
 	actual_labels= np.array(actual_labels)
 	# print len(actual_labels)
-	print sum(predicted == actual_labels)/192.0
+	print sum(predicted == actual_labels)/230.0
 	# print actual_labels
 	# print predicted
 	# print f1_score(actual_labels,predicted,labels=[0,1],average="macro")
-	from sklearn.metrics import confusion_matrix
-	print confusion_matrix(actual_labels,predicted)
+	# from sklearn.metrics import confusion_matrix
+	# print confusion_matrix(actual_labels,predicted)
 
 # print type(retailpriceseriesmumbai)
 # train_test_function(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
@@ -283,14 +279,14 @@ def train_test_function(align_m,align_d,align_l,data_m,data_d,data_l):
 # train_test_function(retailpriceseriesmumbai,retailpriceseriesdelhi,retailpriceserieslucknow,[retailpriceseriesmumbai/mandipriceseriesmumbai],[retailpriceseriesdelhi/mandipriceseriesdelhi],[retailpriceserieslucknow/mandipriceserieslucknow])
 
 
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow,mandiarrivalserieslucknow])
-# train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai/mandipriceseriesmumbai],[retailpriceseriesdelhi/mandipriceseriesdelhi],[retailpriceserieslucknow/mandipriceserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[mandipriceseriesmumbai],[mandipriceseriesdelhi],[mandipriceserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow,mandiarrivalserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai-mandipriceseriesmumbai],[retailpriceseriesdelhi-mandipriceseriesdelhi],[retailpriceserieslucknow-mandipriceserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandiarrivalserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai,mandipriceseriesmumbai,mandiarrivalseriesmumbai],[retailpriceseriesdelhi,mandipriceseriesdelhi,mandiarrivalseriesdelhi],[retailpriceserieslucknow,mandipriceserieslucknow,mandiarrivalserieslucknow])
+train_test_function(mandipriceseriesmumbai,mandipriceseriesdelhi,mandipriceserieslucknow,[retailpriceseriesmumbai/mandipriceseriesmumbai],[retailpriceseriesdelhi/mandipriceseriesdelhi],[retailpriceserieslucknow/mandipriceserieslucknow])
 
 
 # train_test_function(retailpriceseriesmumbai-mandipriceseriesmumbai,retailpriceseriesdelhi-mandipriceseriesdelhi,retailpriceserieslucknow-mandipriceserieslucknow,[retailpriceseriesmumbai],[retailpriceseriesdelhi],[retailpriceserieslucknow])

@@ -45,16 +45,30 @@ from averagemandi import mandiarrivalseries
 # [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
 # [mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseriesmumbai] = whiten_series_list([mandiarrivalseriesdelhi,mandiarrivalserieslucknow,mandiarrivalseries])
 
+def adjust_anomaly_window(anomalies,series):
+  for i in range(0,len(anomalies)):
+    anomaly_period = series[anomalies[0][i]:anomalies[1][i]]
+    mid_date_index = anomaly_period[10:31].argmax()
+    # print type(mid_date_index),mid_date_index
+    # mid_date_index - timedelta(days=21)
+    anomalies[0][i] = mid_date_index - timedelta(days=21)
+    anomalies[1][i] = mid_date_index + timedelta(days=21)
+    anomalies[0][i] = datetime.strftime(anomalies[0][i],'%Y-%m-%d')
+    anomalies[1][i] = datetime.strftime(anomalies[1][i],'%Y-%m-%d')
+  return anomalies
 
-def get_anomalies(path):
+
+def get_anomalies(path,series):
   anomalies = pd.read_csv(path, header=None, index_col=None)
   anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%d/%m/%Y'),'%Y-%m-%d') for date in anomalies[0]]
   anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %d/%m/%Y'),'%Y-%m-%d') for date in anomalies[1]]
+  anomalies = adjust_anomaly_window(anomalies,series)
+ 
   return anomalies
 
-anomaliesmumbai = get_anomalies('data/anomaly/mumbai.csv')
-anomaliesdelhi = get_anomalies('data/anomaly/delhi.csv')
-anomalieslucknow = get_anomalies('data/anomaly/lucknow.csv')
+anomaliesmumbai = get_anomalies('data/anomaly/mumbai.csv',retailpriceseriesmumbai)
+anomaliesdelhi = get_anomalies('data/anomaly/delhi.csv',retailpriceseriesdelhi)
+anomalieslucknow = get_anomalies('data/anomaly/lucknow.csv',retailpriceserieslucknow)
 
 # Labelling 
 # Transport:  1
@@ -92,19 +106,19 @@ def Normalise(arr):
   '''
   Normalise each sample
   '''
-  m = arr.mean()
+  # m = arr.mean()
   am = arr.min()
   aM = arr.max()
-  arr -= m
+  arr -= am
   arr /= (aM - am)
   #arr /= arr.std()
   return arr
 
-def plotIndividualAnomaly(idx, centre):
-  s,e = givePeriod(anomalies, idx)
-  a = Normalise(np.array(retailP[centre][s:e].tolist()))
-  plt.plot(a, linewidth=2.0)
-  plt.show()
+# def plotIndividualAnomaly(idx, centre):
+#   s,e = givePeriod(anomalies, idx)
+#   a = Normalise(np.array(retailP[centre][s:e].tolist()))
+#   plt.plot(a, linewidth=2.0)
+#   plt.show()
 
 def plotClassAvg(clss, lb, cl , series,anomalies):
   '''
@@ -122,26 +136,20 @@ def plotClassAvg(clss, lb, cl , series,anomalies):
       s = anomalies[0][i]
       e = datetime.strftime(datetime.strptime(anomalies[1][i],'%Y-%m-%d')+timedelta(days=0),'%Y-%m-%d')
       a = Normalise(np.array(series[s:e].tolist()))
+      print a
       avg += a
   avg /= count
   # avg = avg.rolling(window = 10,center = True).mean()
-  # plt.plot(avg, color=cl, label=lb, linewidth=1.0)
+  plt.plot(avg, color=cl, label=lb, linewidth=1.0)
+  plt.show()
   avg *= count
   return avg, count
 
-# from averagemandi import mandipriceseries
-# from averageretail import retailpriceserieswhiten
-# from averageretail import retailpriceseries
-# from averagemandi import mandiarrivalseries
-
-
-# retailpriceseries = retailpriceseries.rolling(window=3,center=True).mean()
-# mandipriceseries = mandipriceseries.rolling(window=7,center=True).mean()
-# mandiarrivalseries = mandiarrivalseries.rolling(window=7,center=True).mean()
 
 plt.title('Hoarding and Weather Signatures')
 # plotClassAvg('Weather' , '', colors[3],retailpriceserieswhiten)
 delhi_plot, delhi_count = plotClassAvg('Weather' , 'Delhi', colors[3],retailpriceseriesdelhi,anomaliesdelhi)
+exit()
 mumbai_plot, mumbai_count = plotClassAvg('Weather' , 'Mumbai', colors[2],retailpriceseriesmumbai,anomaliesmumbai)
 lucknow_plot, lucknow_count = plotClassAvg('Weather' , 'Lucknow', colors[1],retailpriceserieslucknow,anomalieslucknow)
 
@@ -152,6 +160,7 @@ total_avg += mumbai_plot
 total_avg += lucknow_plot
 total_avg /= (delhi_count+mumbai_count+lucknow_count)
 # total_avg = pd.Series(total_avg).rolling(window = 3,center = True).mean()
+# total_avg = Normalise(total_avg)
 # total_avg = total_avg[2:]
 plt.plot(total_avg, color='black', label='Average Weather Signature', linewidth=2.0)
 
@@ -168,6 +177,7 @@ total_avg += mumbai_plot
 total_avg += lucknow_plot
 total_avg /= (delhi_count+mumbai_count+lucknow_count)
 # total_avg = pd.Series(total_avg).rolling(window = 3,center = True).mean()
+# total_avg = Normalise(total_avg)
 
 # total_avg = total_avg[2:]
 

@@ -9,16 +9,15 @@ import math
 
 
 
-
-def give_average_series(start,end,mandiarrivalseries):
-  mandiarrivalexpected = mandiarrivalseries.rolling(window=30,center=True).mean()
-  #mandiarrivalexpected = mandiarrivalseries
-  type(mandiarrivalexpected)
-  mandiarrivalexpected = mandiarrivalexpected.groupby([mandiarrivalseries.index.month, mandiarrivalseries.index.day]).mean()
-  idx = pd.date_range(start, end)
-  data = [ (mandiarrivalexpected[index.month][index.day]) for index in idx]
-  expectedarrivalseries = pd.Series(data, index=idx)
-  return expectedarrivalseries
+# def give_average_series(start,end,mandiarrivalseries):
+#   mandiarrivalexpected = mandiarrivalseries.rolling(window=30,center=True).mean()
+#   #mandiarrivalexpected = mandiarrivalseries
+#   type(mandiarrivalexpected)
+#   mandiarrivalexpected = mandiarrivalexpected.groupby([mandiarrivalseries.index.month, mandiarrivalseries.index.day]).mean()
+#   idx = pd.date_range(start, end)
+#   data = [ (mandiarrivalexpected[index.month][index.day]) for index in idx]
+#   expectedarrivalseries = pd.Series(data, index=idx)
+#   return expectedarrivalseries
 
 '''
 Get Retail Price Series
@@ -38,8 +37,8 @@ Get Mandi Price Series
 from averagemandi import getmandi
 mandipriceseriesdelhi = getmandi('Azadpur',True)
 mandiarrivalseriesdelhi = getmandi('Azadpur',False)
-mandipriceserieslucknow = getmandi('Bahraich',True)
-mandiarrivalserieslucknow = getmandi('Bahraich',False)
+mandipriceserieslucknow = getmandi('Devariya',True)
+mandiarrivalserieslucknow = getmandi('Devariya',False)
 from averagemandi import mandipriceseries
 from averagemandi import mandiarrivalseries 
 # [mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseriesmumbai] = whiten_series_list([mandipriceseriesdelhi,mandipriceserieslucknow,mandipriceseries])
@@ -77,12 +76,12 @@ def display_anomalies(anomalieslist, anomaly, labels):
 
 def overlapping(anomalies,s,e,labels):
   startdate = datetime.strptime(s,'%Y-%m-%d')
-  if(startdate.month >=2 and startdate.month <= 7):
-    return True
+  # if(startdate.month >=2 and startdate.month <= 7):
+  #   return True
   for i in range(0,len(anomalies)):
-    # if(labels[i] == 2 or labels[i] == 3 or labels[i] == 5):  
-    if((anomalies[0][i]<=s and s<=anomalies[1][i]) or  (anomalies[0][i]<=e and e<=anomalies[1][i])):
-      return True
+    if(labels[i] == 2 or labels[i] == 5 or labels[i] == 3):  
+      if((anomalies[0][i]<=s and s<=anomalies[1][i]) or  (anomalies[0][i]<=e and e<=anomalies[1][i])):
+        return True
   return False
 
 def findnormal_restricted(anomalies,series,labels):
@@ -95,19 +94,23 @@ def findnormal_restricted(anomalies,series,labels):
   enddate = datetime.strptime(enddate,'%Y-%m-%d')
   window = 42
   duration = timedelta(days=window)
+  count  = 0
   while(duration <= enddate-date):
     s = datetime.strftime(date,'%Y-%m-%d')
     e = datetime.strftime(date+timedelta(days=window),'%Y-%m-%d') 
     x1 = (series.rolling(window=14,center=True).mean())[s:e]
-    date = date+timedelta(days=15)
+    # x1 = series[s:e]
+    date = date+timedelta(days=5)
     if not overlapping(anomalies,s,e,labels):
       a = x1.min()
       b = x1.max()
-      if(math.isnan(a) == False and math.isnan(b) == False and b-a > 0 ):
+      if(math.isnan(a) == False and math.isnan(b) == False and b-a > 0 and b-a <300):
         sdate.append(s)
         edate.append(e)
         print b-a
-        date = date+timedelta(days=30)
+        count = count + 1
+        date = date+timedelta(days=40)
+  print count
   return sdate,edate
 
 
@@ -116,46 +119,16 @@ def createnormalfile(path,anomaliesmumbai,retailpriceseriesmumbai,labels):
   newdf = anomaliesmumbai
   newdf[1] = ' '+newdf[1]
   for i in range(len(a)):
-    newdf.loc[i+len(anomaliesmumbai)] = [a[i],' '+b[i],' NormalR']
+    newdf.loc[i+len(anomaliesmumbai)] = [a[i],' '+b[i],' Normal_train']
   result = newdf.sort_values([0])
   result.to_csv(path, header=None,index=None)
 
-createnormalfile('data/anomaly/newnormalmumbai.csv',anomaliesmumbai,retailpriceseriesmumbai,mumbailabels)
-createnormalfile('data/anomaly/newnormaldelhi.csv',anomaliesdelhi,retailpriceseriesdelhi,delhilabels)
-createnormalfile('data/anomaly/newnormallucknow.csv',anomalieslucknow,retailpriceserieslucknow,lucknowlabels)
+createnormalfile('data/anomaly/normal_h_w_mumbai.csv',anomaliesmumbai,retailpriceseriesmumbai,mumbailabels)
+createnormalfile('data/anomaly/normal_h_w_delhi.csv',anomaliesdelhi,retailpriceseriesdelhi,delhilabels)
+createnormalfile('data/anomaly/normal_h_w_lucknow.csv',anomalieslucknow,retailpriceserieslucknow,lucknowlabels)
 
 
-def get_anomalies_new(path):
-  anomalies = pd.read_csv(path, header=None, index_col=None)
-  anomalies[0] = [ datetime.strftime(datetime.strptime(date, '%Y-%m-%d'),'%Y-%m-%d') for date in anomalies[0]]
-  anomalies[1] = [ datetime.strftime(datetime.strptime(date, ' %Y-%m-%d'),'%Y-%m-%d') for date in anomalies[1]]
-  return anomalies
 
-anomaliesmumbai = get_anomalies_new('data/anomaly/newnormalmumbai.csv')
-anomaliesdelhi = get_anomalies_new('data/anomaly/newnormaldelhi.csv')
-anomalieslucknow = get_anomalies_new('data/anomaly/newnormallucknow.csv')
-
-
-def newlabels(anomalies,oldlabels):
-  print len(anomalies[anomalies[2] != ' NormalR']), len(oldlabels)
-  labels = []
-  k=0
-  for i in range(0,len(anomalies)):
-    if(anomalies[2][i] != ' NormalR'):
-      labels.append(oldlabels[k])
-      #print k,oldlabels[k]
-      k = k+1
-    else:
-      labels.append(6)
-  return labels
-
-
-delhilabelsnew = newlabels(anomaliesdelhi,delhilabels)
-lucknowlabelsnew = newlabels(anomalieslucknow,lucknowlabels)
-mumbailabelsnew = newlabels(anomaliesmumbai,mumbailabels)
-print len(delhilabelsnew)
-print len(lucknowlabelsnew)
-print len(mumbailabelsnew)
 # print len(delhilabelsnew == 2)
 # count1 = display_anomalies(anomaliesmumbai,6,mumbailabelsnew)
 # count2 = display_anomalies(anomaliesdelhi,6,delhilabelsnew)
@@ -166,3 +139,5 @@ print len(mumbailabelsnew)
 #   c = c + count1[keys] + count2[keys] + count3[keys]
 
 # print c
+
+
