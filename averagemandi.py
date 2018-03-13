@@ -34,8 +34,8 @@ def load_wholesale_data():
   START = CONSTANTS['STARTDATE']
   END = CONSTANTS['ENDDATE']
   wholeSalePA = pd.read_csv(CONSTANTS['ORIGINALMANDI'], header=None)
-  wholeSalePA = wholeSalePA[wholeSalePA[WA] > 0.0]
-  wholeSalePA = wholeSalePA[wholeSalePA[WP] > 0.0]
+  #wholeSalePA = wholeSalePA[wholeSalePA[WA] > 0.0]
+  #wholeSalePA = wholeSalePA[wholeSalePA[WP] > 0.0]
   wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WA])]
   wholeSalePA = wholeSalePA[np.isfinite(wholeSalePA[WP])]
   wholeSalePA = wholeSalePA[wholeSalePA[0] >= START]
@@ -92,11 +92,23 @@ def getmandi(mandiname,price):
   return arrival
 
 
+def getmandi2(mandiname,price):
+  if price:
+    switch = 7
+  else:
+    switch = 2 
+  mcode = dict_mandiname_mandicode[mandiname][0]
+  series = CreateMandiSeries(mcode,wholeSalePA)
+  arrival = series[switch]   
+  return arrival
+
+
 def give_df_imagenames(isprice,imagenames):
   mandiseries = []
   for imagename in imagenames:
     imagename = imagename.replace('.','_')
     [statename,centrename,mandiname,_] = imagename.split('_')
+    print mandiname
     arrival = getmandi(mandiname,isprice)
     mandiseries.append(arrival)
 
@@ -114,8 +126,8 @@ def give_average_of_df(mandiDF):
   mandiarrivalseries = RemoveNaNFront(meanseries)
   return mandiarrivalseries
 
-mandiDF = give_df_imagenames(False,imagenames)
-mandiarrivalseries = give_average_of_df(mandiDF)
+mandiDF1 = give_df_imagenames(False,imagenames)
+mandiarrivalseries = give_average_of_df(mandiDF1)
 
 mandiDF = give_df_imagenames(True,imagenames)
 mandipriceseries = give_average_of_df(mandiDF)
