@@ -33,17 +33,19 @@ dict_statecode_statename = state_info.groupby('statecode')['state'].apply(list).
 dict_statename_statecode = state_info.groupby('state')['statecode'].apply(list).to_dict() 
 
 
-src = 'c:/btp/shivankfinal/data/new/Lucknow/Bahraich'
-dest = 'c:/btp/shivankfinal/data/new/Lucknow/Bahraich'
+src = 'c:/btp/shivankfinal/data/new/Delhi/2006_2017_all_mandis'
+dest = 'c:/btp/shivankfinal/data/new/Delhi'
+fname = '/delhi_wholesale_2006-17.csv'
 
 files = [f for f in listdir(src)]
 
 code=-1
 
-newfile = open(src+'/wholesale4.csv','a')
+newfile = open(dest+fname,'a')
 
 for j in range(0,len(files)):
 	file = files[j]
+	print(file)
 	with open(src+'/'+file) as f:
 		content = f.readlines()
 	for i in range(1,len(content)):
@@ -52,8 +54,8 @@ for j in range(0,len(files)):
 			temp[0:2] = [''.join(temp[0:2])]
 		mandi = temp[0]
 		date = temp[1]
-		#print 1,mandi
 		if date != '':
+			#print(date)
 			date = datetime.datetime.strptime(date,'%d/%m/%Y').strftime('%Y-%m-%d')
 			arrival = temp[2]
 			variety = temp[3]
@@ -67,13 +69,11 @@ for j in range(0,len(files)):
 			if not isInt(modalp):
 				modalp = '0'
 			if mandi != '':
-				print 1,mandi
 				if mandi in dict_mandiname_mandicode.keys():
 					code = dict_mandiname_mandicode[mandi]
 				else:
 					code = -1
-				print 2,mandi
-			if code != -1 and minp != 'NR':
+			if code != -1:
 				mystr = date+','+str(code[0])+','+arrival+',NR,'+variety+','+minp+','+maxp+','+modalp+'\n'
 				newfile.write(mystr)
 
