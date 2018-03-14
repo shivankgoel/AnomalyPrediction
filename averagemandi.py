@@ -108,7 +108,8 @@ def give_df_imagenames(isprice,imagenames):
   for imagename in imagenames:
     imagename = imagename.replace('.','_')
     [statename,centrename,mandiname,_] = imagename.split('_')
-    print mandiname
+    print('Loading Mandis')
+    print(mandiname)
     arrival = getmandi(mandiname,isprice)
     mandiseries.append(arrival)
 
