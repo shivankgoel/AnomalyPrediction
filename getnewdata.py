@@ -33,9 +33,9 @@ dict_statecode_statename = state_info.groupby('statecode')['state'].apply(list).
 dict_statename_statecode = state_info.groupby('state')['statecode'].apply(list).to_dict() 
 
 
-src = 'c:/btp/shivankfinal/data/new/Delhi/2006_2017_all_mandis'
-dest = 'c:/btp/shivankfinal/data/new/Delhi'
-fname = '/delhi_wholesale_2006-17.csv'
+src = 'c:/btp/shivankfinal/data/new/Karnataka/1all'
+dest = 'c:/btp/shivankfinal/data/new/Karnataka'
+fname = '/karnataka_wholesale_2006-17.csv'
 
 files = [f for f in listdir(src)]
 
